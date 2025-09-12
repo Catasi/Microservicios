@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Pruebas API Profesores</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h2 {
+      color: #2c3e50;
+    }
+
+    input,
+    button,
+    textarea {
+      margin: 5px 0;
+      padding: 6px;
+      width: 100%;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Tester Microservicio Profesores</h1>
+
+  <!-- Cambiar contraseña -->
+  <div class="card">
+    <h2>1. Cambiar mi contraseña</h2>
+    <input id="nuevaPassword" type="password" placeholder="Nueva contraseña">
+    <button onclick="cambiarPassword()">Actualizar</button>
+    <pre id="resPassword"></pre>
+  </div>
+
+  <!-- Ver mis grupos -->
+  <div class="card">
+    <h2>2. Ver mis grupos</h2>
+    <button onclick="verGrupos()">Ver Grupos</button>
+    <pre id="resGrupos"></pre>
+  </div>
+
+  <!-- Ver alumnos de un grupo -->
+  <div class="card">
+    <h2>3. Ver alumnos de un grupo</h2>
+    <input id="grupoIdAlumnos" placeholder="ID del grupo (Mongo)">
+    <button onclick="verAlumnos()">Ver Alumnos</button>
+    <pre id="resAlumnos"></pre>
+  </div>
+
+  <!-- Subir calificación -->
+  <div class="card">
+    <h2>4. Subir calificación</h2>
+    <input id="grupoIdCal" placeholder="ID del grupo (Mongo)">
+    <input id="matriculaCal" placeholder="Matrícula del alumno">
+    <input id="materiaCal" placeholder="Materia">
+    <input id="notaCal" placeholder="Calificación">
+    <button onclick="subirCalificacion()">Subir</button>
+    <pre id="resCalificacion"></pre>
+  </div>
+
+  <script>
+    const API = "http://localhost:4002/api/profesores";
+    let token = localStorage.getItem("token");
+    if (!token) {
+      alert("No estás logueado");
+      window.location.href = "login.html";
+    }
+
+
+    async function cambiarPassword() {
+      const password = document.getElementById("nuevaPassword").value;
+      const res = await fetch(`${API}/mi-password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ password })
+      });
+      document.getElementById("resPassword").textContent = JSON.stringify(await res.json(), null, 2);
+    }
+
+    async function verGrupos() {
+      const res = await fetch(`${API}/mis-grupos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      document.getElementById("resGrupos").textContent = JSON.stringify(await res.json(), null, 2);
+    }
+
+    async function verAlumnos() {
+      const grupoId = document.getElementById("grupoIdAlumnos").value;
+      const res = await fetch(`${API}/mis-grupos/${grupoId}/alumnos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      document.getElementById("resAlumnos").textContent = JSON.stringify(await res.json(), null, 2);
+    }
+
+    async function subirCalificacion() {
+      const grupoId = document.getElementById("grupoIdCal").value;
+      const data = {
+        matricula: document.getElementById("matriculaCal").value,
+        materia: document.getElementById("materiaCal").value,
+        calificacion: Number(document.getElementById("notaCal").value)
+      };
+      const res = await fetch(`${API}/mis-grupos/${grupoId}/calificaciones`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+      document.getElementById("resCalificacion").textContent = JSON.stringify(await res.json(), null, 2);
+    }
+  </script>
+
+</body>
+
+</html>
