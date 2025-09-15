@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión Servicios Escolares</title>
+  <link rel="stylesheet" href="servicios-escolares.css">
+</head>
+
+<body>
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <h1>Portal de Servicios Escolares</h1>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">SE</div>
+                <div>
+                    <div style="font-weight: 500;">Dr. Juan Pérez Ibarra</div>
+                    <div style="font-size: 0.9rem; opacity: 0.8;">Administrador</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-content">
+            <button class="nav-btn active" onclick="showSection('alumnos')">
+                Gestión de Alumnos
+            </button>
+            <button class="nav-btn" onclick="showSection('grupos')">
+                Gestión de Grupos
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Gestión de Alumnos -->
+        <section id="alumnos" class="section active">
+            <h2>Gestión de Alumnos</h2>
+            
+            <!-- Búsqueda -->
+            <div class="search-section">
+                <h3 style="margin-bottom: 1rem; color: #002C72;">Buscar Alumno</h3>
+                <div class="search-row">
+                    <div class="form-group">
+                        <label for="searchMatricula">Matrícula:</label>
+                        <input type="number" id="searchMatricula" placeholder="Ingrese la matrícula del alumno">
+                    </div>
+                    <button class="btn btn-outline" onclick="searchStudent()">Buscar</button>
+                </div>
+            </div>
+
+            <!-- Información del alumno (se muestra después de buscar) -->
+            <div id="studentCard" class="student-card">
+                <h3>Información del Alumno</h3>
+                <div class="student-info">
+                    <div class="info-item">
+                        <div class="info-label">Nombre:</div>
+                        <div class="info-value" id="studentName">Ana Martínez López</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Matrícula:</div>
+                        <div class="info-value" id="studentMatricula">23001547</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Usuario:</div>
+                        <div class="info-value" id="studentUser">amartinezl</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Registro/Actualización -->
+            <form id="studentForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="nombre">Nombre Completo:</label>
+                        <input type="text" id="nombre" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="matricula">Matrícula:</label>
+                        <input type="number" id="matricula" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="usuario">Usuario:</label>
+                    <input type="text" id="usuario" required>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" onclick="clearForm()">Limpiar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Alumno</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Gestión de Grupos -->
+        <section id="grupos" class="section">
+            <h2>Gestión de Grupos</h2>
+            
+            <form id="groupForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="grupoNombre">Nombre del Grupo:</label>
+                        <input type="text" id="grupoNombre" placeholder="Ej: ISC-7A" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="carrera">Carrera:</label>
+                        <input type="text" id="carrera" placeholder="Ej: Ingeniería en Sistemas" required>
+                    </div>
+                </div>
+
+                <h3 style="color: #002C72; margin: 2rem 0 1rem 0;">Asignación del Profesor</h3>
+                
+                <div class="form-group">
+                    <label for="profesorSelect">Seleccionar Profesor:</label>
+                    <select id="profesorSelect" required>
+                        <option value="">-- Seleccione un profesor --</option>
+                        <option value="2001">Dr. Juan Pérez Ibarra (Emp. 2001)</option>
+                        <option value="2002">Dra. María González Silva (Emp. 2002)</option>
+                        <option value="2003">Ing. Carlos Rodríguez Mendoza (Emp. 2003)</option>
+                        <option value="2004">M.C. Ana Fernández López (Emp. 2004)</option>
+                        <option value="2005">Dr. Luis Martínez Torres (Emp. 2005)</option>
+                    </select>
+                </div>
+
+                <h3 style="color: #002C72; margin: 2rem 0 1rem 0;">Agregar Alumnos al Grupo</h3>
+                
+                <div class="search-section">
+                    <div class="search-row">
+                        <div class="form-group">
+                            <label for="addStudentMatricula">Buscar por Matrícula:</label>
+                            <input type="number" id="addStudentMatricula" placeholder="Ingrese matrícula del alumno">
+                        </div>
+                        <button type="button" class="btn btn-outline" onclick="addStudentToGroup()">Agregar Alumno</button>
+                    </div>
+                </div>
+
+                <div id="groupStudentsList" class="form-group">
+                    <label>Alumnos en el Grupo:</label>
+                    <div id="studentsContainer" style="border: 2px solid #e1e1e1; border-radius: 5px; padding: 1rem; min-height: 100px; background-color: #f9f9f9;">
+                        <p style="color: #666; text-align: center; margin: 0;">No hay alumnos agregados</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+                    <button type="button" class="btn btn-outline" onclick="clearGroupForm()">Limpiar</button>
+                    <button type="submit" class="btn btn-secondary">Crear Grupo</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="servicios-escolares.js"></script>
+</body>
+</html>
