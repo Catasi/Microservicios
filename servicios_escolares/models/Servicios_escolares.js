@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const ServiciosEscolaresSchema = new mongoose.Schema({
     no_empleado: { type: Number, required: true, unique: true },
@@ -7,4 +7,4 @@ const ServiciosEscolaresSchema = new mongoose.Schema({
     usuario: { type: String, required: true, unique: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model("ServiciosEscolares", ServiciosEscolaresSchema);
+export default mongoose.model("ServiciosEscolares", ServiciosEscolaresSchema);

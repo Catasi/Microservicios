@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const AlumnoSchema = new mongoose.Schema({
     matricula: { type: Number, required: true, unique: true },
@@ -7,4 +7,4 @@ const AlumnoSchema = new mongoose.Schema({
     usuario: { type: String, required: true, unique: true },
 }, { timestamps: true });
 
-module.exports = mongoose.model("Alumno", AlumnoSchema);
+export default mongoose.model("Alumno", AlumnoSchema);
