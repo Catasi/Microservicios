@@ -5,6 +5,6 @@ const AlumnoSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
     carrera: { type: String, required: true },
     usuario: { type: String, required: true, unique: true },
-}, { timestamps: true });
+}, { timestamps: false });
 
-export default mongoose.model("Alumno", AlumnoSchema);
+export default mongoose.model("Alumnos", AlumnoSchema);

@@ -13,6 +13,6 @@ const GruposSchema = new mongoose.Schema({
         matricula: Number,
         usuario: String
     }]
-}, { timestamps: true });
+}, { timestamps: false });
 
 export default mongoose.model("Grupos", GruposSchema);

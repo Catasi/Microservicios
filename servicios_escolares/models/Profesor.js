@@ -5,6 +5,6 @@ const ProfesorSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
     puesto: { type: String, required: true },
     usuario: { type: String, required: true, unique: true },
-}, { timestamps: true });
+}, { timestamps: false });
 
-export default mongoose.model("Profesor", ProfesorSchema);
+export default mongoose.model("Profesores", ProfesorSchema);
