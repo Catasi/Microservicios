@@ -9,21 +9,23 @@ const router = express.Router();
 // Ruta para agregar alumno
 router.post('/agregar-alumno', async (req, res) => {
     try {
-        const { nombre, matricula, carrera } = req.body;
-        if (!nombre || !matricula || !carrera) {
-            return res.status(400).json({ 
-                message: 'Todos los campos son requeridos (nombre, matricula, carrera)' 
+        const { nombre, matricula, usuario, carrera } = req.body;
+        if (!nombre || !matricula || !usuario || !carrera) {
+            return res.status(400).json({
+                success: false,
+                message: 'Todos los campos son requeridos (nombre, matricula, usuario, carrera)' 
             });
         }
 
         const existeAlumno = await Alumnos.findOne({ matricula });
         if (existeAlumno) {
             return res.status(409).json({ 
+                success: false,
                 message: 'Ya existe un alumno con esa matrícula' 
             });
         }
 
-        const nuevoAlumno = new Alumnos({ nombre, matricula, carrera });
+        const nuevoAlumno = new Alumnos({ nombre, matricula, usuario, carrera});
         await nuevoAlumno.save();
         res.status(201).json({
             success: true,
@@ -66,6 +68,40 @@ router.post('/buscar-alumno', async (req, res) => {
     }
 });
 
+// Ruta para modificar alumno existente
+router.put('/modificar-alumno/:matricula', async (req, res) => {
+    try {
+        const { matricula } = req.params;
+        const { nombre, usuario, carrera } = req.body;
+        if (!nombre || !usuario || !carrera) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Todos los campos son requeridos (nombre, usuario, carrera)' 
+            });
+        }
+        const alumnoActualizado = await Alumnos.findOneAndUpdate(
+            { matricula }, 
+            { nombre, usuario, carrera },
+            { new: true, runValidators: true }
+        );
+        if (!alumnoActualizado) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Alumno no encontrado' 
+            });
+        }
+        res.json({ 
+            success: true,
+            message: 'Alumno modificado exitosamente', 
+            alumno: alumnoActualizado });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error al modificar alumno', 
+            error: error.message });
+    }
+});
+
 // Ruta para obtener los profesores (getAll)
 router.get('/profesores', async (req, res) => {
     try {
@@ -87,14 +123,14 @@ router.post('/crear-grupo', async (req, res) => {
     try {
     const { nombre, carrera, profesorId, alumnos } = req.body;
         
-        // ✅ Validación de campos requeridos
+        // Validación de campos requeridos
         if (!nombre || !carrera || !profesorId) {
             return res.status(400).json({ 
                 message: 'Los campos nombre, carrera y profesorId son requeridos' 
             });
         }
 
-        // ✅ Verificar que el profesor existe
+        // Buscar el profesor completo por ID
         const profesor = await Profesores.findById(profesorId);
         if (!profesor) {
             return res.status(404).json({ 
@@ -102,7 +138,7 @@ router.post('/crear-grupo', async (req, res) => {
             });
         }
 
-        // ✅ Crear grupo con estructura correcta según tu schema
+        //  Crear grupo con estructura correcta 
         const nuevoGrupo = new Grupo({ 
             nombre, 
             carrera,
@@ -129,7 +165,7 @@ router.post('/crear-grupo', async (req, res) => {
     }
 });
 
-// ✅ Ruta para actualizar alumno
+//  Ruta para actualizar alumno
 router.put('/actualizar-alumno/:matricula', async (req, res) => {
     try {
         const { matricula } = req.params;

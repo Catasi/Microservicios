@@ -206,6 +206,10 @@ body {
             color: white;
         }
 
+        .oculto {
+            display: none !important;
+        }
+
         /* Student Info Card */
         .student-card {
             display: none;

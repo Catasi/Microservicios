@@ -3,6 +3,8 @@
 // Aquí se encuentra solo el JavaScript específico para la interfaz de Servicios Escolares
 */
 
+document.getElementById('ActualizarAlumno').classList.add('oculto');
+
 // Navegación entre secciones
 function showSection(sectionId) {
     // Ocultar todas las secciones
@@ -27,6 +29,9 @@ function clearForm() {
     document.getElementById('studentForm').reset();
     document.getElementById('studentCard').classList.remove('show');
     document.getElementById('searchMatricula').value = '';
+    
+    document.getElementById('ActualizarAlumno').classList.add('oculto');
+    document.getElementById('GuardarAlumno').classList.remove('oculto');
 }
 
 // Limpiar formulario de grupo
@@ -36,17 +41,59 @@ function clearGroupForm() {
     updateStudentsList();
 }
 
+// Mensajes de notificaciones o alertas
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.innerHTML = message;
+    notification.style.cssText = `
+        position: fixed; top: 20px; right: 20px; 
+        padding: 15px; border-radius: 5px; z-index: 1000;
+        background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+        color: white; font-weight: bold;
+    `;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => notification.remove(), 3000);
+}
+
 
 /*
 // Aquí se encuentra solo el JavaScript para las solicitudes de API
 */
 
 // Variable para almacenar alumnos del grupo
+
 let groupStudents = [];
 const API = "http://localhost:3001/api/SE";
+fetchProfessors();
+
+// Agregar alumno nuevo
+async function addNewStudent() {
+    const nombre = document.getElementById('nombre').value;
+    const matricula = document.getElementById('matricula').value;
+    const usuario = document.getElementById('usuario').value;
+    const carrera = document.getElementById('carrera').value;
+
+    const res = await fetch(`${API}/agregar-alumno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, matricula, usuario, carrera })
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success === true) {
+        showNotification('Alumno agregado exitosamente');
+        clearForm();
+    } else {
+        showNotification('Error al agregar alumno: ' + data.message, 'error');
+    }
+}
 
 // Buscar alumno
 async function searchStudent() {
+    document.getElementById('GuardarAlumno').classList.add('oculto');
+    document.getElementById('ActualizarAlumno').classList.remove('oculto');
+
     const matricula = document.getElementById('searchMatricula').value;
     const res = await fetch(`${API}/buscar-alumno`, {
         method: 'POST',
@@ -64,34 +111,128 @@ async function searchStudent() {
         document.getElementById('nombre').value = data.alumno.nombre;
         document.getElementById('matricula').value = data.alumno.matricula;
         document.getElementById('usuario').value = data.alumno.usuario;
+        document.getElementById('carrera').value = data.alumno.carrera;
+        
+        // Mostrar datos en la tarjeta
         document.getElementById('studentName').textContent  = data.alumno.nombre;
         document.getElementById('studentMatricula').textContent  = data.alumno.matricula;
         document.getElementById('studentUser').textContent  = data.alumno.usuario;
+        document.getElementById('studentCarrera').textContent  = data.alumno.carrera;
     } else {
-        alert('Por favor ingrese una matrícula válida');
+        showNotification('Por favor ingrese una matrícula válida', 'error');
         clearForm();
     }
 }
 
+// Modificar alumno
+async function modifyStudent() {
+    const nombre = document.getElementById('nombre').value;
+    const matricula = document.getElementById('matricula').value;
+    const usuario = document.getElementById('usuario').value;
+    const carrera = document.getElementById('carrera').value;
+
+    const res = await fetch(`${API}/modificar-alumno/${matricula}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, usuario, carrera })
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+        showNotification('Alumno modificado exitosamente');
+        clearForm();
+    } else {
+        showNotification('Error al modificar alumno: ' + data.message, 'error');
+    }
+}
+
+// Obtener profesores GetAll
+async function fetchProfessors() {
+    const res = await fetch(`${API}/profesores`);
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+        const select = document.getElementById('profesorSelect');
+        select.innerHTML = '<option value="">Seleccione un profesor</option>';
+        data.profesores.forEach(prof => {
+            const option = document.createElement('option');
+            option.value = prof._id;
+            option.textContent = prof.nombre;
+            select.appendChild(option);
+        });
+    } else {
+        showNotification('Error al cargar profesores: ' + data.message, 'error');
+    }
+}
+
+// Función auxiliar para buscar alumno (reutiliza el endpoint)
+async function findStudentByMatricula(matricula) {
+    try {
+        const res = await fetch(`${API}/buscar-alumno`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ matricula })
+        });
+        const data = await res.json();
+        return data.success ? data.alumno : null;
+    } catch (error) {
+        console.error('Error al buscar alumno:', error);
+        return null;
+    }
+}
+
+// Agregar un grupo
+async function createGroup() {
+    const nombre = document.getElementById('grupoNombre').value;
+    const carrera = document.getElementById('carreraGrupo').value;
+    const profesor = document.getElementById('profesorSelect').value;
+    const alumnos = groupStudents;
+
+    if (!nombre || !carrera || !profesor) {
+        showNotification('Por favor complete todos los campos del grupo', 'error');
+        return;
+    }
+    if (alumnos.length === 0) {
+        showNotification('Por favor agregue al menos un alumno al grupo', 'error');
+        return;
+    }
+    const res = await fetch(`${API}/crear-grupo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, carrera, profesorId: profesor, alumnos })
+    });
+    const data = await res.json();
+    console.log(data);
+    if (data.success) {
+        showNotification('Grupo creado exitosamente');
+        clearGroupForm();
+    }
+    else {
+        showNotification('Error al crear grupo: ' + data.message, 'error');
+    }
+}
+
+
 // Agregar alumno al grupo
-function addStudentToGroup() {
+async function addStudentToGroup() {
     const matricula = document.getElementById('addStudentMatricula').value;
     
     if (!matricula) {
-        alert('Por favor ingrese una matrícula');
+        showNotification('Por favor ingrese una matrícula', 'error');
         return;
     }
 
-    // Verificar si el alumno existe
-    const student = studentsDB[matricula];
+    // Buscar alumno reutilizando el endpoint
+    const student = await findStudentByMatricula(matricula);
     if (!student) {
-        alert('No se encontró un alumno con esa matrícula');
+        showNotification('No se encontró un alumno con esa matrícula', 'error');
+        document.getElementById('addStudentMatricula').value = '';
         return;
     }
 
     // Verificar si ya está agregado
     if (groupStudents.find(s => s.matricula == matricula)) {
-        alert('El alumno ya está agregado al grupo');
+        showNotification('El alumno ya está agregado al grupo', 'error');
         return;
     }
 
@@ -99,6 +240,7 @@ function addStudentToGroup() {
     groupStudents.push(student);
     updateStudentsList();
     document.getElementById('addStudentMatricula').value = '';
+    showNotification(`Alumno ${student.nombre} agregado al grupo`);
 }
 
 // Actualizar la lista visual de alumnos
@@ -125,37 +267,21 @@ function removeStudentFromGroup(matricula) {
     updateStudentsList();
 }
 
-// Limpiar formulario de alumno
-function clearForm() {
-    document.getElementById('studentForm').reset();
-    document.getElementById('studentCard').classList.remove('show');
-    document.getElementById('searchMatricula').value = '';
-}
-
-// Limpiar formulario de grupo
-function clearGroupForm() {
-    document.getElementById('groupForm').reset();
-    groupStudents = [];
-    updateStudentsList();
-}
-
 // Manejar envío de formulario de alumno
 document.getElementById('studentForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    alert('Alumno guardado exitosamente');
+    const submitter = e.submitter;
+    
+    if (submitter && submitter.id === 'GuardarAlumno') {
+        addNewStudent();
+    } else if (submitter && submitter.id === 'ActualizarAlumno') {
+        modifyStudent();
+    }
 });
 
 // Manejar envío de formulario de grupo
 document.getElementById('groupForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const groupData = {
-        nombre: document.getElementById('grupoNombre').value,
-        carrera: document.getElementById('carrera').value,
-        profesorId: document.getElementById('profesorSelect').value,
-        alumnos: groupStudents
-    };
-    
-    console.log('Grupo creado:', groupData);
-    alert(`Grupo "${groupData.nombre}" creado exitosamente con ${groupStudents.length} alumnos`);
+    createGroup();
 });

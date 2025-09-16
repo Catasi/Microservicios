@@ -69,6 +69,10 @@
                         <div class="info-label">Usuario:</div>
                         <div class="info-value" id="studentUser"></div>
                     </div>
+                    <div class="info-item">
+                        <div class="info-label">Carrera:</div>
+                        <div class="info-value" id="studentCarrera"></div>
+                    </div>
                 </div>
             </div>
 
@@ -79,20 +83,28 @@
                         <label for="nombre">Nombre Completo:</label>
                         <input type="text" id="nombre" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-grousp">
                         <label for="matricula">Matrícula:</label>
                         <input type="number" id="matricula" required>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="usuario">Usuario:</label>
-                    <input type="text" id="usuario" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="carrera">Carrera:</label>
+                            <input type="text" id="carrera" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="usuario">Usuario:</label>
+                            <input type="text" id="usuario" required>
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 1rem; justify-content: flex-end;">
                     <button type="button" class="btn btn-outline" onclick="clearForm()">Limpiar</button>
-                    <button type="submit" class="btn btn-primary" onclick="">Guardar Alumno</button>
+                    <button type="button" id="GuardarAlumno" class="btn btn-primary" onclick="addNewStudent()">Guardar Alumno</button>
+                    <button type="button" id="ActualizarAlumno" class="btn btn-secondary" onclick="modifyStudent()">Actualizar Alumno</button>
                 </div>
             </form>
         </section>
@@ -109,7 +121,7 @@
                     </div>
                     <div class="form-group">
                         <label for="carrera">Carrera:</label>
-                        <input type="text" id="carrera" placeholder="Ej: Ingeniería en Sistemas" required>
+                        <input type="text" id="carreraGrupo" placeholder="Ej: Ingeniería en Sistemas" required>
                     </div>
                 </div>
 
@@ -118,12 +130,6 @@
                 <div class="form-group">
                     <label for="profesorSelect">Seleccionar Profesor:</label>
                     <select id="profesorSelect" required>
-                        <option value="">-- Seleccione un profesor --</option>
-                        <option value="2001">Dr. Juan Pérez Ibarra (Emp. 2001)</option>
-                        <option value="2002">Dra. María González Silva (Emp. 2002)</option>
-                        <option value="2003">Ing. Carlos Rodríguez Mendoza (Emp. 2003)</option>
-                        <option value="2004">M.C. Ana Fernández López (Emp. 2004)</option>
-                        <option value="2005">Dr. Luis Martínez Torres (Emp. 2005)</option>
                     </select>
                 </div>
 
@@ -148,7 +154,7 @@
 
                 <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
                     <button type="button" class="btn btn-outline" onclick="clearGroupForm()">Limpiar</button>
-                    <button type="submit" class="btn btn-secondary">Crear Grupo</button>
+                    <button type="submit" class="btn btn-secondary" onclick="createGroup()">Crear Grupo</button>
                 </div>
             </form>
         </section>
