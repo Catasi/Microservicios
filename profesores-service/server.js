@@ -18,11 +18,10 @@ app.use("/api/profesores", profesorRoutes);
 // Archivos estáticos
 app.use(express.static(path.join(__dirname, "public")));
 
-// Catch-all para cualquier ruta que no sea /api
+// Catch-all para rutas que no sean API
 app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
-
 
 const PORT = process.env.PORT || 4002;
 app.listen(PORT, () => {

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RH Dashboard - SITO</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Recursos Humanos</h1>
+            <button onclick="logout()">Cerrar Sesión</button>
+        </header>
+
+        <div class="content">
+            <h2>Registrar Nuevo Profesor</h2>
+            <form id="professorForm">
+                <input type="text" id="employeeNumber" placeholder="Número de empleado" required>
+                <input type="text" id="name" placeholder="Nombre completo" required>
+                <select id="position" name="position" required>
+                    <option value="">Selecciona un puesto</option>
+                    <option value="profesor">Profesor</option>
+                    <option value="rh">RH</option>
+                    <option value="servicios_escolares">Servicios Escolares</option>
+                </select>
+                <input type="text" id="username" placeholder="Usuario" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <button type="submit">Registrar Profesor</button>
+            </form>
+
+            <h2>Lista de Profesores</h2>
+            <div id="professorsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        console.log('Token en localStorage:', token);
+        
+        if (!token) {
+            alert('No hay token. Redirigiendo al login...');
+            window.location.href = 'login.html';
+        }
+
+        // Verificar token al cargar la página
+        verifyToken();
+
+        // Cargar profesores al iniciar
+        loadProfessors();
+
+        document.getElementById('professorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const professorData = {
+                employeeNumber: document.getElementById('employeeNumber').value,
+                name: document.getElementById('name').value,
+                position: document.getElementById('position').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            console.log('📤 Enviando datos:', professorData);
+
+            try {
+                const response = await fetch('http://localhost:3002/api/professors/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(professorData)
+                });
+
+                console.log('📥 Status de respuesta:', response.status);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('✅ Success:', result);
+                    alert('Profesor registrado exitosamente');
+                    // Limpiar formulario
+                    document.getElementById('professorForm').reset();
+                    loadProfessors();
+                } else {
+                    const errorData = await response.json().catch(() => ({ error: 'Error desconocido' }));
+                    console.error('❌ Error:', errorData);
+                    alert('Error al registrar profesor: ' + (errorData.error || 'Error desconocido'));
+                }
+            } catch (error) {
+                console.error('🔥 Error de conexión:', error);
+                alert('Error de conexión: ' + error.message);
+            }
+        });
+
+        async function loadProfessors() {
+            try {
+                console.log('🔄 Cargando profesores...');
+                const response = await fetch('http://localhost:3002/api/professors', {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Status de carga:', response.status);
+                
+                if (response.ok) {
+                    const professors = await response.json();
+                    console.log('👥 Profesores cargados:', professors);
+                    
+                    const list = document.getElementById('professorsList');
+                    list.innerHTML = professors.map(prof => `
+                        <div class="professor-card">
+                            <h3>${prof.name}</h3>
+                            <p>Número: ${prof.employeeNumber}</p>
+                            <p>Puesto: ${prof.position}</p>
+                            <p>Estado: ${prof.active ? 'Activo' : 'Inactivo'}</p>
+                        </div>
+                    `).join('');
+                } else {
+                    console.error('❌ Error cargando profesores:', await response.text());
+                }
+            } catch (error) {
+                console.error('🔥 Error loading professors:', error);
+            }
+        }
+
+        async function verifyToken() {
+            try {
+                console.log('🔍 Verificando token...');
+                const response = await fetch('http://localhost:3001/api/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Token inválido');
+                }
+
+                const userData = await response.json();
+                console.log('✅ Token válido para:', userData.username);
+                
+            } catch (error) {
+                console.error('❌ Token inválido:', error);
+                alert('Sesión expirada. Por favor inicia sesión again.');
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userRole');
+            window.location.href = 'login.html';
+        }
+
+        // Debug: Mostrar info del token
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('🔐 Token info:', {
+                    username: payload.username,
+                    role: payload.role,
+                    exp: new Date(payload.exp * 1000)
+                });
+            } catch (e) {
+                console.log('❌ No se pudo decodificar el token');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -59,12 +59,14 @@
         const json = await res.json();
         document.getElementById("resLogin").textContent = JSON.stringify(json, null, 2);
 
-        // ✅ Si login exitoso y el puesto es Profesor, guarda token y redirige
+        // ✅ Si login exitoso y el puesto es Profesor
         if (json.token && json.role === "Profesor") {
+          // Guardamos token y credenciales mínimas
           localStorage.setItem("token", json.token);
-          window.location.href = "test-profesores.html";
-        }
-        else if (json.token) {
+          localStorage.setItem("profesor", JSON.stringify({ numeroEmpleado: data.numeroEmpleado }));
+          localStorage.setItem("password", data.password); // para mostrar en el panel
+          window.location.href = "test-profesores.html"; // Redirige al panel
+        } else if (json.token) {
           alert("Acceso denegado: no eres profesor");
         }
       } catch (err) {
