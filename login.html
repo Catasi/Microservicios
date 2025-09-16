@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - SITO</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container">
+        <h2>Iniciar Sesión - SITO</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Usuario" required>
+            <input type="password" id="password" placeholder="Contraseña" required>
+            <button type="submit">Ingresar</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('userRole', data.role);
+                    
+                    // Redirigir según el rol
+                    switch(data.role) {
+                        case 'rh':
+                            window.location.href = 'rh-dashboard.html';
+                            break;
+                        case 'profesor':
+                            window.location.href = 'profesor-dashboard.html';
+                            break;
+                        default:
+                            alert('Rol no reconocido');
+                    }
+                } else {
+                    document.getElementById('message').textContent = data.error;
+                }
+            } catch (error) {
+                document.getElementById('message').textContent = 'Error de conexión';
+            }
+        });
+    </script>
+</body>
+</html>

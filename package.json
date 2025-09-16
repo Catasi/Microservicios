@@ -15,5 +15,13 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Catasi/Microservicios.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Catasi/Microservicios/issues"
+  },
+  "homepage": "https://github.com/Catasi/Microservicios#readme"
 }

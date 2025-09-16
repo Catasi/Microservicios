@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RH Dashboard - SITO</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <h1>Recursos Humanos</h1>
+            <button onclick="logout()">Cerrar Sesión</button>
+        </header>
+
+        <div class="content">
+            <h2>Registrar Nuevo Profesor</h2>
+            <form id="professorForm">
+                <input type="text" id="employeeNumber" placeholder="Número de empleado" required>
+                <input type="text" id="name" placeholder="Nombre completo" required>
+                <select id="position" required>
+                    <option value="profesor">Profesor</option>
+                    <option value="rh">RH</option>
+                    <option value="servicios_escolares">Servicios Escolares</option>
+                </select>
+                <input type="text" id="username" placeholder="Usuario" required>
+                <input type="password" id="password" placeholder="Contraseña" required>
+                <button type="submit">Registrar Profesor</button>
+            </form>
+
+            <h2>Lista de Profesores</h2>
+            <div id="professorsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        // Cargar profesores al iniciar
+        loadProfessors();
+
+        document.getElementById('professorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const professorData = {
+                employeeNumber: document.getElementById('employeeNumber').value,
+                name: document.getElementById('name').value,
+                position: document.getElementById('position').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:3002/api/professors/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(professorData)
+                });
+
+                if (response.ok) {
+                    alert('Profesor registrado exitosamente');
+                    loadProfessors();
+                } else {
+                    alert('Error al registrar profesor');
+                }
+            } catch (error) {
+                alert('Error de conexión');
+            }
+        });
+
+        async function loadProfessors() {
+            try {
+                const response = await fetch('http://localhost:3002/api/professors', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const professors = await response.json();
+                const list = document.getElementById('professorsList');
+                
+                list.innerHTML = professors.map(prof => `
+                    <div class="professor-card">
+                        <h3>${prof.name}</h3>
+                        <p>Número: ${prof.employeeNumber}</p>
+                        <p>Puesto: ${prof.position}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading professors:', error);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userRole');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
