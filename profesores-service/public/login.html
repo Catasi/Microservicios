@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Login Profesores</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    input,
+    button {
+      margin: 5px 0;
+      padding: 6px;
+      width: 100%;
+    }
+
+    .card {
+      border: 1px solid #ddd;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h2>Login Profesor</h2>
+    <input id="numeroEmpleado" placeholder="Número de empleado">
+    <input id="password" type="password" placeholder="Contraseña">
+    <button onclick="loginProfesor()">Login</button>
+    <pre id="resLogin"></pre>
+  </div>
+
+  <script>
+    const API = "http://localhost:4002/api/profesores";
+
+    async function loginProfesor() {
+      const data = {
+        numeroEmpleado: document.getElementById("numeroEmpleado").value,
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const res = await fetch(`${API}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+
+        const json = await res.json();
+        document.getElementById("resLogin").textContent = JSON.stringify(json, null, 2);
+
+        // ✅ Si login exitoso y el puesto es Profesor
+        if (json.token && json.role === "Profesor") {
+          // Guardamos token y credenciales mínimas
+          localStorage.setItem("token", json.token);
+          localStorage.setItem("profesor", JSON.stringify({ numeroEmpleado: data.numeroEmpleado }));
+          localStorage.setItem("password", data.password); // para mostrar en el panel
+          window.location.href = "test-profesores.html"; // Redirige al panel
+        } else if (json.token) {
+          alert("Acceso denegado: no eres profesor");
+        }
+      } catch (err) {
+        document.getElementById("resLogin").textContent = err;
+      }
+    }
+  </script>
+</body>
+
+</html>
