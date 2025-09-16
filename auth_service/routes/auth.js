@@ -57,4 +57,43 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
+// VERIFICAR TOKEN - Essential para RH service
+router.post('/verify', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Token requerido' });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.json(decoded);
+  } catch (error) {
+    res.status(401).json({ error: 'Token inválido' });
+  }
+});
+
+// REGISTRAR USUARIO - Essential para RH service
+router.post('/register', async (req, res) => {
+  try {
+    const { username, password, role } = req.body;
+
+    // Verificar si el usuario ya existe
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: 'El usuario ya existe' });
+    }
+
+    const user = new User({
+      username,
+      password, // Se encriptará automáticamente por el pre-save hook
+      role
+    });
+
+    await user.save();
+    res.status(201).json({ message: 'Usuario registrado exitosamente' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al registrar usuario' });
+  }
+});
+
 module.exports = router;
