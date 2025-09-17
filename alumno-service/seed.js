@@ -1,6 +1,4 @@
-//simulacion de ddatos de prueba
-
-import mongoose from "mongoose";
+import mongoose from "mongoose";  
 import dotenv from "dotenv";
 import Alumno from "./models/Alumno.js";
 import Grupo from "./models/Grupo.js";
@@ -11,7 +9,7 @@ connectDB();
 
 const seed = async () => {
   try {
-    // Limpiar colecciones (opcional)
+    // Limpiar colecciones
     await Alumno.deleteMany({});
     await Grupo.deleteMany({});
 
@@ -23,24 +21,50 @@ const seed = async () => {
     });
     await grupo.save();
 
-    // Crear un alumno
-    const alumno = new Alumno({
+    // Alumno 1
+    const alumno1 = new Alumno({
       matricula: "A001",
       nombre: "Vanesa",
       carrera: "TSU Desarrollo de Software",
-      password: "123456", // se puede cambiar luego con /mi-password
+      password: "12345", 
       calificaciones: [
         { grupo: grupo._id, materia: "Programación", calificacion: 95 },
       ],
     });
-    await alumno.save();
+    await alumno1.save();
+    grupo.alumnos.push(alumno1._id);
 
-    // Asociar alumno al grupo
-    grupo.alumnos.push(alumno._id);
+    // Alumno 2
+    const alumno2 = new Alumno({
+      matricula: "A002",
+      nombre: "Luis",
+      carrera: "TSU Desarrollo de Software",
+      password: "54321",
+      calificaciones: [
+        { grupo: grupo._id, materia: "Programación", calificacion: 88 },
+      ],
+    });
+    await alumno2.save();
+    grupo.alumnos.push(alumno2._id);
+
+    // Alumno 3
+    const alumno3 = new Alumno({
+      matricula: "A003",
+      nombre: "María",
+      carrera: "TSU Desarrollo de Software",
+      password: "abc123",
+      calificaciones: [
+        { grupo: grupo._id, materia: "Programación", calificacion: 92 },
+      ],
+    });
+    await alumno3.save();
+    grupo.alumnos.push(alumno3._id);
+
+    // Guardar grupo actualizado
     await grupo.save();
 
     console.log("✅ Datos de prueba creados");
-    console.log("ID del alumno:", alumno._id.toString());
+    console.log("ID alumnos:", alumno1._id.toString(), alumno2._id.toString(), alumno3._id.toString());
     process.exit();
   } catch (error) {
     console.error(error);
@@ -49,3 +73,9 @@ const seed = async () => {
 };
 
 seed();
+// Para ejecutar: node alumno-service/seed.js
+// Asegúrate de tener MongoDB corriendo y la URL en .env correcta
+// También instala las dependencias con: npm install mongoose dotenv
+// Luego corre el script con: node alumno-service/seed.js
+// Esto limpiará las colecciones y añadirá datos de prueba
+// Revisa la consola para ver los IDs generados de los alumnos  

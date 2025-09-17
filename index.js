@@ -15,7 +15,7 @@
 import express from 'express';
 
 const app = express();
-const apiAlumnos = "http://localhost:4003/api/alumnos";
+const apiAlumnos = "http://localhost:4001/api/alumnos";
 const apiProfesores = "http://localhost:4002/api/profesores";
 const apiRH = "http://localhost:3002/api/professors";  // si es esta?
 const apiSE = "http://localhost:3001/api/SE";
@@ -124,7 +124,31 @@ app.post('/nuevo-grupo', express.json(), async (req, res) => {
 // datos que a enviar: nombre, numero de empleado, usuario, puesto :D
 
 // ALUMNO notifica cambio de contraseña a AUTENTICACION
+app.post('/alumno/cambio-password', express.json(), async (req, res) => {
+    try {
+        const { username, newPassword } = req.body;
 
+        // 🔔 Notificar a Autenticación
+        const respuesta = await fetch(`${apiAuth}/notify-password-change`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, newPassword })
+        });
+
+        const data = await respuesta.json();
+
+        if (respuesta.ok) {
+            console.log('✅ Contraseña notificada exitosamente a Autenticación');
+            res.json({ success: true, message: 'Cambio de contraseña enviado correctamente' });
+        } else {
+            console.error('❌ Error al notificar cambio de contraseña:', data.error);
+            res.status(respuesta.status).json({ success: false, error: data.error });
+        }
+    } catch (error) {
+        console.error('🔥 Error en notificación de cambio de contraseña:', error);
+        res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+});
 
 // PROFESOR notifica cambio de contraseña a AUTENTICACION
 

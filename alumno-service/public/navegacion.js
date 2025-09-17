@@ -21,18 +21,42 @@ function showSection(sectionId) {
 // Manejo de la información del alumno simulada
 */
 
-const alumno = {
+const alumnos = [
+  {
+    nombre: "Vanesa",
+    matricula: "A001",
+    usuario: "vanesa",
+    carrera: "TSU Desarrollo de Software",
+    grupos: ["Desarrollo Web"],
+    calificaciones: [
+      { materia: "Programación", profesor: "Lic. Pérez", calificacion: 95, fecha: "2025-09-15" }
+    ]
+  },
+  {
+    nombre: "Luis",
+    matricula: "A002",
+    usuario: "luis",
+    carrera: "TSU Desarrollo de Software",
+    grupos: ["Desarrollo Web"],
+    calificaciones: [
+      { materia: "Programación", profesor: "Lic. Pérez", calificacion: 88, fecha: "2025-09-15" }
+    ]
+  },
+  {
     nombre: "Valeria Rea",
     matricula: "20251001",
     usuario: "valerea",
     carrera: "Ingeniería en Sistemas",
     grupos: ["ISC-7A", "ISC-7B"],
     calificaciones: [
-        { materia: "Matemáticas", profesor: "Lic. García", calificacion: 9.5, fecha: "2025-09-15" },
-        { materia: "Física", profesor: "Dra. López", calificacion: 8.7, fecha: "2025-09-12" }
+      { materia: "Matemáticas", profesor: "Lic. García", calificacion: 9.5, fecha: "2025-09-15" },
+      { materia: "Física", profesor: "Dra. López", calificacion: 8.7, fecha: "2025-09-12" }
     ]
-};
+  }
+];
+const alumno = alumnos[1]; // Simulamos que "Vanesa" está logueada
 
+// Cargar información del alumno al iniciar la página   
 
 window.onload = () => {
     // Información general
