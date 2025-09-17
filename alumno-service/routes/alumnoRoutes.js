@@ -47,7 +47,7 @@ router.put("/contrasena", async (req, res) => {
       });
     } catch (notifyError) {
       console.error("⚠️ Error notificando a Autenticación:", notifyError.message);
-      // No detenemos el flujo, solo avisamos
+      // No detenemos el flujo, solo avisamos 
     }
 
     res.json({ mensaje: "Contraseña actualizada ✅ y notificada a Autenticación" });
