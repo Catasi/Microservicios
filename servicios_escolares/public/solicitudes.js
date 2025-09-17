@@ -64,7 +64,7 @@ function showNotification(message, type = 'success') {
 // Variable para almacenar alumnos del grupo
 
 let groupStudents = [];
-const API = "http://localhost:3001/api/SE";
+const API = "http://localhost:4005/api/SE";
 const apiPadre = "http://localhost:7020/api/";
 fetchProfessors();
 
