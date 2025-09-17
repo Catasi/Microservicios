@@ -1,6 +1,6 @@
-const express = require('express');
-const axios = require('axios');
-const Professor = require('../models/Professor');
+import express from 'express';
+import axios from 'axios';
+import Professor from '../models/Professor.js';
 const router = express.Router();
 
 // Middleware para verificar token - CORREGIDO
@@ -79,7 +79,7 @@ router.post('/register', verifyToken, async (req, res) => {
     }
 });
 
-// Obtener todos los profesores
+// Obtener todos los profesores (con autenticación)
 router.get('/', verifyToken, async (req, res) => {
     try {
         const professors = await Professor.find({ active: true });
@@ -89,9 +89,37 @@ router.get('/', verifyToken, async (req, res) => {
     }
 });
 
+// Obtener todos los profesores (SIN autenticación - para Servicios Escolares)
+router.get('/public', async (req, res) => {
+    try {
+        const professors = await Professor.find({ active: true });
+        res.json(professors);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener profesores' });
+    }
+});
+
+// Obtener profesor por número de empleado
+router.get('/:employeeNumber', verifyToken, async (req, res) => {
+    try {
+        const professor = await Professor.findOne({ 
+            employeeNumber: req.params.employeeNumber,
+            active: true 
+        });
+        
+        if (!professor) {
+            return res.status(404).json({ error: 'Profesor no encontrado' });
+        }
+        
+        res.json(professor);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener profesor' });
+    }
+});
+
 // Endpoint de health check
 router.get('/health', (req, res) => {
     res.json({ message: 'RH Service is running!' });
 });
 
-module.exports = router;
+export default router;

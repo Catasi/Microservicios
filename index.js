@@ -12,10 +12,17 @@
 // })
 
 
+
 import express from 'express';
+import fetch from 'node-fetch';
 
 const app = express();
+<<<<<<< HEAD
 const apiAlumnos = "http://localhost:4001/api/alumnos";
+=======
+app.use(express.json()); // ← AGREGAR ESTO (global)
+const apiAlumnos = "http://localhost:4003/api/alumnos";
+>>>>>>> b46b6347c1f9d8c66c93476f882391e9b6fea8f4
 const apiProfesores = "http://localhost:4002/api/profesores";
 const apiRH = "http://localhost:3002/api/professors";  // si es esta?
 const apiSE = "http://localhost:3001/api/SE";
@@ -24,6 +31,7 @@ app.get('/', (req, res) => {
     res.send('Hellouuu, si da con Express');
 });
 
+<<<<<<< HEAD
 // SERVICIOS ESCOLARES notifica que hay un nuevo alumno a ALUMNOS y AUTENTICACION
 app.post('/notificar-nuevo-alumno', express.json(), async (req, res) => {
     try {
@@ -155,6 +163,8 @@ app.post('/alumno/cambio-password', express.json(), async (req, res) => {
 // PROFESOR notifica nueva calificacion a ALUMNOS
 
 
+=======
+>>>>>>> b46b6347c1f9d8c66c93476f882391e9b6fea8f4
 //Inicialización del servidor
 app.listen(7020, () => {
     console.log('Servidor escuchando el puerto 7020');
