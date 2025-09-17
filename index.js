@@ -12,9 +12,12 @@
 // })
 
 
+
 import express from 'express';
+import fetch from 'node-fetch';
 
 const app = express();
+app.use(express.json()); // ← AGREGAR ESTO (global)
 const apiAlumnos = "http://localhost:4003/api/alumnos";
 const apiProfesores = "http://localhost:4002/api/profesores";
 const apiRH = "http://localhost:3002/api/professors";  // si es esta?
@@ -25,7 +28,7 @@ app.get('/', (req, res) => {
 });
 
 // SERVICIOS ESCOLARES notifica que hay un nuevo alumno a ALUMNOS y AUTENTICACION
-app.post('/notificar-nuevo-alumno', express.json(), async (req, res) => {
+app.post('/notificar-nuevo-alumno', async (req, res) => {
     try {
         const { nombre, matricula, usuario, carrera } = req.body;
         
@@ -56,7 +59,7 @@ app.post('/notificar-nuevo-alumno', express.json(), async (req, res) => {
 });
 
 // SERVICIOS ESCOLARES notifica que se modificaron los datos de un alumno
-app.post('actualizar-alumno', express.json(), async (req, res) => {
+app.post('/actualizar-alumno', async (req, res) => {
     try {
         const { nombre, matricula, usuario, carrera } = req.body;
         const respuesta = await fetch(`${apiAlumnos}/modificar-alumno/${matricula}`, {
@@ -79,7 +82,7 @@ app.post('actualizar-alumno', express.json(), async (req, res) => {
 });
 
 // SERVICIOS ESCOLARES notifica que se creó un nuevo grupo a ALUMNOS y PROFESORES
-app.post('/nuevo-grupo', express.json(), async (req, res) => {
+app.post('/nuevo-grupo', async (req, res) => {
     try {
         const { nombre, carrera, profesor, alumnos } = req.body;
 
@@ -116,10 +119,118 @@ app.post('/nuevo-grupo', express.json(), async (req, res) => {
     }
 });
 
-// RH notifica cambio de contraseña a AUTENTICACION
-
-
 // RH notifica nuevo profesor a AUTENTICACION, PROFESORES y SERVICIOS ESCOLARES
+app.post('/rh/nuevo-profesor', async (req, res) => {
+    try {
+        const { numeroEmpleado, nombre, puesto, usuario, password } = req.body;
+        
+        // Validar puesto
+        const puestosValidos = ['profesor', 'rh', 'servicios_escolares'];
+        if (!puestosValidos.includes(puesto)) {
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Puesto inválido. Debe ser: profesor, rh o servicios_escolares' 
+            });
+        }
+
+        // 1. ✅ NOTIFICAR A AUTENTICACIÓN (Crear usuario)
+        const respuestaAuth = await fetch('http://localhost:3001/api/auth/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                username: usuario, 
+                password: password, 
+                role: puesto
+            })
+        });
+
+        if (!respuestaAuth.ok) {
+            const errorAuth = await respuestaAuth.json();
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Error en autenticación: ' + errorAuth.error 
+            });
+        }
+
+        // 2. ✅ NOTIFICAR A PROFESORES (Tu servicio RH)
+        const respuestaRH = await fetch('http://localhost:3002/api/professors/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                employeeNumber: numeroEmpleado,
+                name: nombre,
+                position: puesto,
+                username: usuario,
+                password: password
+            })
+        });
+
+        if (!respuestaRH.ok) {
+            const errorRH = await respuestaRH.json();
+            return res.status(400).json({ 
+                success: false, 
+                error: 'Error en RH: ' + errorRH.error 
+            });
+        }
+
+        // 3. ✅ NOTIFICAR A SERVICIOS ESCOLARES
+        const respuestaSE = await fetch(`${apiSE}/nuevo-profesor`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                numeroEmpleado,
+                nombre,
+                puesto,
+                usuario
+            })
+        });
+
+        // Si falla SE, no es crítico pero lo registramos
+        if (!respuestaSE.ok) {
+            console.warn('⚠️  Profesor creado, pero no se pudo notificar a Servicios Escolares');
+        }
+
+        console.log('✅ Profesor notificado a todos los servicios exitosamente');
+        res.json({ 
+            success: true, 
+            message: 'Profesor registrado y notificado a Autenticación, RH y Servicios Escolares' 
+        });
+
+    } catch (error) {
+        console.error('Error al notificar nuevo profesor:', error);
+        res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+});
+
+// RH notifica cambio de contraseña a AUTENTICACION
+app.post('/rh/cambio-password', async (req, res) => {
+    try {
+        const { usuario, oldPassword, newPassword } = req.body;
+        
+        const respuesta = await fetch('http://localhost:3001/api/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: usuario,
+                oldPassword: oldPassword,
+                newPassword: newPassword
+            })
+        });
+
+        const data = await respuesta.json();
+        
+        if (respuesta.ok) {
+            console.log('✅ Contraseña cambiada exitosamente en Autenticación');
+            res.json({ success: true, message: 'Contraseña actualizada correctamente' });
+        } else {
+            console.error('Error al cambiar contraseña:', data.error);
+            res.status(respuesta.status).json({ success: false, error: data.error });
+        }
+    } catch (error) {
+        console.error('Error en cambio de contraseña:', error);
+        res.status(500).json({ success: false, error: 'Error interno del servidor' });
+    }
+});
 // endpoint para notificar a SE = /nuevo-profesor
 // datos que a enviar: nombre, numero de empleado, usuario, puesto :D
 

@@ -1,7 +1,7 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const professorRoutes = require('./routes/professors');
+import express from 'express';
+import mongoose from 'mongoose';
+import cors from 'cors';
+import professorRoutes from './routes/professors.js';
 
 const app = express();
 const PORT = 3002;
