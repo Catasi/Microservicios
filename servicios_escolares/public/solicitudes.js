@@ -74,11 +74,12 @@ async function addNewStudent() {
     const matricula = document.getElementById('matricula').value;
     const usuario = document.getElementById('usuario').value;
     const carrera = document.getElementById('carrera').value;
+    const contrasenia = document.getElementById('contrasenia').value;
 
     const res = await fetch(`${API}/agregar-alumno`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, matricula, usuario, carrera })
+        body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
     });
     const data = await res.json();
     console.log(data);
@@ -93,7 +94,7 @@ async function addNewStudent() {
     const resPadre = await fetch(`${apiPadre}/notificar-nuevo-alumno`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, matricula, usuario, carrera })
+        body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
     });
     const dataPadre = await resPadre.json();
     console.log('Respuesta del API padre:', dataPadre);
