@@ -125,6 +125,7 @@ router.post('/crear-grupo', async (req, res) => {
         
         // Validación de campos requeridos
         if (!nombre || !carrera || !profesorId) {
+            console.log('Validación falló');
             return res.status(400).json({ 
                 message: 'Los campos nombre, carrera y profesorId son requeridos' 
             });
@@ -132,6 +133,7 @@ router.post('/crear-grupo', async (req, res) => {
 
         // Buscar el profesor completo por ID
         const profesor = await Profesores.findById(profesorId);
+        
         if (!profesor) {
             return res.status(404).json({ 
                 message: 'Profesor no encontrado' 

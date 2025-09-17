@@ -282,6 +282,4 @@ document.getElementById('studentForm').addEventListener('submit', function(e) {
 // Manejar envío de formulario de grupo
 document.getElementById('groupForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
-    createGroup();
 });
