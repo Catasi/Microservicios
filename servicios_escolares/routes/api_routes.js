@@ -200,12 +200,25 @@ router.put('/actualizar-alumno/:matricula', async (req, res) => {
     }
 });
 
-// Enviar armado grupo a profesor
+// ||| Notificaciones entre microservicios |||
 
-// Enviar armado grupo a alumnos
+// Nuevo profesor
+router.post('/nuevo-profesor', express.json(), async (req, res) => {
+    try {
+        const { nombre, no_empleado, usuario, puesto } = req.body;
+        const nuevoProfe = new Profesores({ nombre, no_empleado, usuario, puesto});
+        await nuevoProfe.save();
+        res.status(201).json({
+            success: true,
+            message: 'Profesor agregado exitosamente', 
+            profesor: nuevoProfe });
+    } catch (error) {
+        res.status(500).json({ 
+            success: false,
+            message: 'Error al agregar profesor', 
+            error: error.message });
+    }
+});
 
-// Enviar registro alumno
-
-// Enviar actualización de datos alumno
 
 export default router; 

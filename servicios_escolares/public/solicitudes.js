@@ -65,6 +65,7 @@ function showNotification(message, type = 'success') {
 
 let groupStudents = [];
 const API = "http://localhost:3001/api/SE";
+const apiPadre = "http://localhost:7020/api/";
 fetchProfessors();
 
 // Agregar alumno nuevo
@@ -87,6 +88,15 @@ async function addNewStudent() {
     } else {
         showNotification('Error al agregar alumno: ' + data.message, 'error');
     }
+
+    // Notificar nuevo alumno
+    const resPadre = await fetch(`${apiPadre}/notificar-nuevo-alumno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, matricula, usuario, carrera })
+    });
+    const dataPadre = await resPadre.json();
+    console.log('Respuesta del API padre:', dataPadre);
 }
 
 // Buscar alumno
@@ -144,6 +154,15 @@ async function modifyStudent() {
     } else {
         showNotification('Error al modificar alumno: ' + data.message, 'error');
     }
+
+    // Notificar nuevo alumno
+    const resPadre = await fetch(`${apiPadre}/actualizar-alumno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, matricula, usuario, carrera })
+    });
+    const dataPadre = await resPadre.json();
+    console.log('Respuesta del API padre:', dataPadre);
 }
 
 // Obtener profesores GetAll
@@ -210,6 +229,16 @@ async function createGroup() {
     else {
         showNotification('Error al crear grupo: ' + data.message, 'error');
     }
+
+    // Notificar nuevo grupo
+    const resPadre = await fetch(`${apiPadre}/nuevo-grupo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, carrera, profesor, alumnos })
+    });
+        const dataPadre = await resPadre.json();
+        console.log('Respuesta del API padre:', dataPadre);
+
 }
 
 
