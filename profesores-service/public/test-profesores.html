@@ -56,7 +56,7 @@ th { background: #f4f4f4; }
 </div>
 
 <script>
-const API = "http://localhost:4002/api/profesores";
+const API = "http://localhost:4003/api/profesores";
 let token = localStorage.getItem("token");
 let profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
 let passwordPlano = localStorage.getItem("password") || "";
@@ -245,3 +245,4 @@ cargarGrupos();
 </script>
 </body>
 </html>
+
