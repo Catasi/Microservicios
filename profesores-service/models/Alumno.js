@@ -13,6 +13,8 @@ const AlumnoSchema = new mongoose.Schema({
   }]
 }, { timestamps: true });
 
-export default mongoose.model("Alumno", AlumnoSchema);
+const Alumno = mongoose.models.Alumno || mongoose.model('Alumno', AlumnoSchema);
+
+export default Alumno;
 
 

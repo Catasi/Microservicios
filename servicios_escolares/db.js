@@ -6,15 +6,13 @@ dotenv.config();
 
 const dbConnection = async() => {
     try {
-        const conn = await mongoose.connect(process.env.MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
+        const conn = await mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/Servicios_Escolares", {
         });
-        console.log('Base de datos online');
+        console.log('✅ Base de datos online Servicios Escolares');
         return conn;
     } catch (error) {
         console.log(error);
-        throw new Error('Error a la hora de iniciar la base de datos');
+        throw new Error('❌ Error a la hora de iniciar la base de datos');
     }
 }
 
