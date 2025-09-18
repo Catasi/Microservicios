@@ -1,16 +1,14 @@
 import mongoose from "mongoose";
 
-const AlumnoSchema = new mongoose.Schema({
-  matricula: { type: String, required: true, unique: true },
-  nombre:    { type: String, required: true },
-  carrera:   { type: String, required: true },
-  calificaciones: [{
-    grupo:       { type: mongoose.Schema.Types.ObjectId, ref: "Grupo", required: true },
-    materia:     { type: String, required: true },
-    calificacion:{ type: Number, required: true },
-    profesor:    { type: mongoose.Schema.Types.ObjectId, ref: "Profesor", required: true },
-    fecha:       { type: Date, default: Date.now }
-  }]
-}, { timestamps: true });
+const GrupoSchema = new mongoose.Schema(
+  {
+    materia:  { type: String, required: true },
+    grupo:    { type: String, required: true },
+    carrera:  { type: String, required: true },
+    profesor: { type: mongoose.Schema.Types.ObjectId, ref: "Profesor", required: true },
+    alumnos:  [{ type: mongoose.Schema.Types.ObjectId, ref: "Alumno" }]
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model("Alumno", AlumnoSchema);
+export default mongoose.model("Grupo", GrupoSchema);
