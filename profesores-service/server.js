@@ -2,9 +2,37 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import Profesor from "../models/Profesor.js";
-import Grupo from "../models/Grupo.js";
-import Alumno from "../models/Alumno.js";
+import Profesor from "./models/Profesor.js";
+import Grupo from "./models/Grupo.js";
+import Alumno from "./models/Alumno.js";
+
+import dotenv from "dotenv";
+import cors from "cors";
+import connectDB from "./config/db.js";
+import path from "path";
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config();
+connectDB();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Rutas API
+import profesorRoutes from "./routes/profesorRoutes.js";
+app.use("/api/profesores", profesorRoutes);
+
+// Archivos estáticos
+app.use(express.static(path.join(__dirname, "public")));
+
+// Catch-all para rutas que no sean API
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
 const router = express.Router();
 
@@ -132,30 +160,6 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
 });
 
 export default router;
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const connectDB = require("./config/db");
-const path = require("path");
-
-dotenv.config();
-connectDB();
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// Rutas API
-const profesorRoutes = require("./routes/profesorRoutes");
-app.use("/api/profesores", profesorRoutes);
-
-// Archivos estáticos
-app.use(express.static(path.join(__dirname, "public")));
-
-// Catch-all para rutas que no sean API
-app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
-});
 
 const PORT = process.env.PORT || 4002;
 app.listen(PORT, () => {

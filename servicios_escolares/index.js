@@ -51,5 +51,5 @@ app.use((err, req, res, next) => {
 //PUERTO DEL SERVIDOR
 const PORT = process.env.PORT || 4005;
 app.listen(PORT, () => {
-    console.log(`Servidor corriendo en puerto ${PORT}`);
+    console.log(`🚀 Servidor SE corriendo en http://localhost:${PORT}`);
 });

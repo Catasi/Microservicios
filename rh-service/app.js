@@ -11,14 +11,18 @@ app.use(cors());
 app.use(express.json());
 
 // Conexión a MongoDB
-mongoose.connect('mongodb://localhost:27017/rh_db', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+try {
+  await mongoose.connect('mongodb://localhost:27017/rh_db', {});
+  console.log('✅ Base de datos online RH');
+}catch(error){
+  console.error('❌ Error connecting to MongoDB:', error);
+  process.exit(1);
+}
+
 
 // Routes
 app.use('/api/professors', professorRoutes);
 
 app.listen(PORT, () => {
-  console.log(`RH Service running on port ${PORT}`);
+  console.log(`🚀 RH Service running on port ${PORT}`);
 });
