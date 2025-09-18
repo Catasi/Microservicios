@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const GruposSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
     carrera: { type: String, required: true },
+    materia:  { type: String, required: true},
     profe: { 
         nombre: String,
         no_empleado: Number,
