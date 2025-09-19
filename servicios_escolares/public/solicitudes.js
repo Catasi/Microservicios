@@ -336,17 +336,6 @@ function removeStudentFromGroup(matricula) {
     updateStudentsList();
 }
 
-// Manejar envío de formulario de alumno
-document.getElementById('studentForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    const submitter = e.submitter;
-    
-    if (submitter && submitter.id === 'GuardarAlumno') {
-        addNewStudent();
-    } else if (submitter && submitter.id === 'ActualizarAlumno') {
-        modifyStudent();
-    }
-});
 
 // Manejar envío de formulario de grupo
 document.getElementById('groupForm').addEventListener('submit', function(e) {
