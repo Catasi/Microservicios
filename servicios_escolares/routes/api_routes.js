@@ -9,11 +9,11 @@ const router = express.Router();
 // Ruta para agregar alumno
 router.post('/agregar-alumno', async (req, res) => {
     try {
-        const { nombre, matricula, usuario, carrera } = req.body;
-        if (!nombre || !matricula || !usuario || !carrera) {
+        const { nombre, matricula, usuario, carrera, contrasenia } = req.body;
+        if (!nombre || !matricula || !usuario || !carrera || !contrasenia) {
             return res.status(400).json({
                 success: false,
-                message: 'Todos los campos son requeridos (nombre, matricula, usuario, carrera)' 
+                message: 'Todos los campos son requeridos (nombre, matricula, usuario, carrera, contrasenia)' 
             });
         }
 
@@ -25,7 +25,7 @@ router.post('/agregar-alumno', async (req, res) => {
             });
         }
 
-        const nuevoAlumno = new Alumnos({ nombre, matricula, usuario, carrera});
+        const nuevoAlumno = new Alumnos({ nombre, matricula, usuario, carrera, contrasenia});
         await nuevoAlumno.save();
         res.status(201).json({
             success: true,

@@ -65,8 +65,26 @@ function showNotification(message, type = 'success') {
 
 let groupStudents = [];
 const API = "http://localhost:4005/api/SE";
-const apiPadre = "http://localhost:7020/api/";
+const apiAlumnos = "http://localhost:4001/api/alumnos";
+const apiProfesores = "http://localhost:4002/api/profesores";
+const apiRH = "http://localhost:3002/api/professors";
+const apiAuth = "http://localhost:3001/api/auth"
+const apiSE = "http://localhost:4005/api/SE";
 fetchProfessors();
+
+// Crear constraseña alumnos
+function crearContrasena(nombre, matricula, usuario, carrera) {
+    // Validar que los campos no estén vacíos
+    if (!nombre || !matricula) {
+        return 'default123'; // Contraseña por defecto si faltan datos
+    }
+    
+    // Opción 1: Super sencilla - primeras 2 letras de nombre + últimos 4 dígitos de matrícula
+    const contrasena = nombre.substring(0, 2).toLowerCase() + matricula.slice(-4);
+    
+    return contrasena;
+}
+
 
 // Agregar alumno nuevo
 async function addNewStudent() {
@@ -74,7 +92,9 @@ async function addNewStudent() {
     const matricula = document.getElementById('matricula').value;
     const usuario = document.getElementById('usuario').value;
     const carrera = document.getElementById('carrera').value;
-    const contrasenia = document.getElementById('contrasenia').value;
+    
+    const contrasenia = crearContrasena(nombre, matricula, usuario, carrera);
+    console.log('Contraseña generada:', contrasenia);
 
     const res = await fetch(`${API}/agregar-alumno`, {
         method: 'POST',
@@ -90,14 +110,23 @@ async function addNewStudent() {
         showNotification('Error al agregar alumno: ' + data.message, 'error');
     }
 
-    // Notificar nuevo alumno
-    const resPadre = await fetch(`${apiPadre}/notificar-nuevo-alumno`, {
+    // Notificar nuevo alumno a ALUMNOS
+    const restAlumnos = await fetch(`${apiAlumnos}/nuevo-alumno`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
     });
-    const dataPadre = await resPadre.json();
-    console.log('Respuesta del API padre:', dataPadre);
+    const dataAlumnos = await restAlumnos.json();
+    console.log('Respuesta de API alumnos:', dataAlumnos);
+
+    // Notificar nuevo alumno a AUTENTICACION
+    const restAuth = await fetch(`${apiAuth}/nuevo-alumno`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
+    });
+    const dataAuth = await restAuth.json();
+    console.log('Respuesta de API auth:', dataAuth);
 }
 
 // Buscar alumno
@@ -157,13 +186,13 @@ async function modifyStudent() {
     }
 
     // Notificar nuevo alumno
-    const resPadre = await fetch(`${apiPadre}/actualizar-alumno`, {
+    const restAlum = await fetch(`${apiAlumnos}/modificar-alumno`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, matricula, usuario, carrera })
     });
-    const dataPadre = await resPadre.json();
-    console.log('Respuesta del API padre:', dataPadre);
+    const dataAlum = await restAlum.json();
+    console.log('Respuesta del API padre:', dataAlum);
 }
 
 // Obtener profesores GetAll
@@ -206,9 +235,10 @@ async function createGroup() {
     const nombre = document.getElementById('grupoNombre').value;
     const carrera = document.getElementById('carreraGrupo').value;
     const profesor = document.getElementById('profesorSelect').value;
+    const materia = document.getElementById('materiaGrupo').value;
     const alumnos = groupStudents;
 
-    if (!nombre || !carrera || !profesor) {
+    if (!nombre || !carrera || !profesor || !materia) {
         showNotification('Por favor complete todos los campos del grupo', 'error');
         return;
     }
@@ -219,7 +249,7 @@ async function createGroup() {
     const res = await fetch(`${API}/crear-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, carrera, profesorId: profesor, alumnos })
+        body: JSON.stringify({ nombre, carrera, materia, profesorId: profesor, alumnos })
     });
     const data = await res.json();
     console.log(data);
@@ -231,14 +261,23 @@ async function createGroup() {
         showNotification('Error al crear grupo: ' + data.message, 'error');
     }
 
-    // Notificar nuevo grupo
-    const resPadre = await fetch(`${apiPadre}/nuevo-grupo`, {
+    // Notificar nuevo grupo a ALUMNOS
+    const rest = await fetch(`${apiAlumnos}/asignar-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, carrera, profesor, alumnos })
+        body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
     });
-        const dataPadre = await resPadre.json();
-        console.log('Respuesta del API padre:', dataPadre);
+        const dataA = await rest.json();
+        console.log('Respuesta del API alumnos:', dataA);
+
+    // Notificar nuevo grupo a PROFESORES
+    const restProf = await fetch(`${apiProfesoresE}/asignar-grupo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
+    });
+        const dataProf = await restProf.json();
+        console.log('Respuesta del API profesores:', dataProf);
 
 }
 
