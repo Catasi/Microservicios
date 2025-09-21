@@ -1,18 +1,25 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const path = require("path");
-const connectDB = require("./config/db");
-const alumnoRoutes = require("./routes/alumnoRoutes");
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import { fileURLToPath } from "url";
+import connectDB from "./config/db.js";
+import alumnoRoutes from "./routes/alumnoRoutes.js";
 
 dotenv.config();
 connectDB();
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Rutas Api
+// Para __dirname en ESM
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Rutas API
 app.use("/api/alumnos", alumnoRoutes);
 
 // Archivos estáticos
@@ -20,7 +27,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Catch-all para rutas que no sean API
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public", "alumno.html"));
 });
 
 const PORT = process.env.PORT || 4001;
