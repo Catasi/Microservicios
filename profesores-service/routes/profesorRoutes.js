@@ -1,10 +1,10 @@
-const express = require("express");
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-const Profesor = require("../models/Profesor");
-const Grupo = require("../models/Grupo");
-const Alumno = require("../models/Alumno");
+import Profesor from "../models/Profesor.js";
+import Grupo from "../models/Grupo.js";
+import Alumno from "../models/Alumno.js";
 
 const router = express.Router();
 
@@ -67,7 +67,7 @@ router.get("/mis-grupos", authMiddleware, async (req, res) => {
   try {
     const grupos = await Grupo.find({ profesor: req.user.id })
       .populate("alumnos", "matricula nombre carrera")
-      .populate("profesor", "numeroEmpleado nombre puesto");
+      .populate("profesor", "numeroEmpleado usuario nombre puesto");
     res.json(grupos);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -131,4 +131,4 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
   }
 });
 
-module.exports = router;
+export default router;
