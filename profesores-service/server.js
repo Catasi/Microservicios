@@ -297,18 +297,26 @@ router.post("/sync", express.json(), async (req, res) => {
 // 🔑 Login de profesor
 router.post("/login", async (req, res) => {
   try {
-    const { numeroEmpleado, password } = req.body;
-    const profesor = await Profesor.findOne({ numeroEmpleado });
-    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
+    const { usuario, password } = req.body;
+    const profesor = await Profesor.findOne({ usuario });
+    if (!profesor) return res.status(404).json({ error: "Usuario no encontrado" });
 
     const match = await bcrypt.compare(password, profesor.passwordHash);
     if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
 
     const token = jwt.sign(
-      { id: profesor._id, role: profesor.puesto, numeroEmpleado: profesor.numeroEmpleado },
+      { id: profesor._id, role: profesor.puesto, usuario: profesor.usuario },
       process.env.JWT_SECRET,
       { expiresIn: "2h" }
     );
+
+    // 🔔 Notificar al servicio login
+    axios.post("http://localhost:PUERTO_DEL_SERVICIO_COMPANERO/api/auth/notificar-login", {
+      usuario: profesor.usuario,
+      numeroEmpleado: profesor.numeroEmpleado
+    }, {
+      headers: { "x-service-token": process.env.SYNC_TOKEN_COMPANERO }
+    }).catch(err => console.error("Error notificando al otro servicio:", err.message));
 
     res.json({ mensaje: "Login exitoso", token, role: profesor.puesto, profesor });
   } catch (error) {
