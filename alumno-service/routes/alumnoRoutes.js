@@ -1,14 +1,12 @@
-import express from "express";
-import bcrypt from "bcryptjs";
-import axios from "axios"; // 🔹 cliente HTTP para notificar
+const express = require("express");
+const bcrypt = require("bcryptjs");
+const axios = require("axios");
 
-import Alumno from "../models/Alumno.js";
-import Grupo from "../models/Grupo.js";
-
+const Alumno = require("../models/Alumno");
 const router = express.Router();
 
 // =========================
-// Listar todos los alumnos
+// Listar todos los alumnos, falta agregar la direccion API de alumnos 
 // =========================
 router.get("/", async (req, res) => {
   try {
@@ -24,73 +22,38 @@ router.get("/", async (req, res) => {
 // =========================
 router.put("/contrasena", async (req, res) => {
   try {
-    const { id, password } = req.body;
-    if (!id) return res.status(400).json({ error: "ID del alumno requerido" });
-    if (!password) return res.status(400).json({ error: "Contraseña requerida" });
+    const { id, password, passwordActual } = req.body;
 
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    const alumno = await Alumno.findByIdAndUpdate(
-      id,
-      { password: passwordHash },
-      { new: true }
-    );
-
-    if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
-
-    // 🔹 Notificar al microservicio de Autenticación
-    try {
-      await axios.post("http://localhost:4002/api/auth/notificar-password", {
-        id: alumno._id,
-        matricula: alumno.matricula,
-        password: passwordHash,
-      });
-    } catch (notifyError) {
-      console.error("⚠️ Error notificando a Autenticación:", notifyError.message);
-      // No detenemos el flujo, solo avisamos 
+    if (!id || !password) {
+      return res.status(400).json({ error: "ID y nueva contraseña requeridos" });
     }
 
-    res.json({ mensaje: "Contraseña actualizada ✅ y notificada a Autenticación" });
+    const alumno = await Alumno.findById(id);
+    if (!alumno) {
+      return res.status(404).json({ error: "Alumno no encontrado" });
+    }
+
+    // verificar contraseña actual
+    if (passwordActual) {
+      const isMatch = await bcrypt.compare(passwordActual, alumno.password);
+      if (!isMatch) return res.status(400).json({ error: "Contraseña actual incorrecta" });
+    }
+
+    // Encriptar nueva contraseña
+    const salt = await bcrypt.genSalt(50);
+    alumno.password = await bcrypt.hash(password, salt);
+    await alumno.save();
+
+    // Notificar al servicio de autenticación (no bloquea la respuesta)
+    axios.post("http://localhost:4000/api/auth/notificar-cambio", {
+      alumnoId: id,
+      mensaje: "El alumno ha cambiado su contraseña",
+    }).catch(err => console.error("Error notificando a auth-service:", err.message));
+
+    res.json({ message: "Contraseña actualizada correctamente" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// =========================
-// Ver calificaciones
-// =========================
-router.get("/calificaciones", async (req, res) => {
-  try {
-    const { id } = req.query;
-    if (!id) return res.status(400).json({ error: "ID del alumno requerido" });
-
-    const alumno = await Alumno.findById(id).populate(
-      "calificaciones.grupo",
-      "nombre carrera"
-    );
-
-    if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
-
-    res.json(alumno.calificaciones);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// =========================
-// Ver grupos
-// =========================
-router.get("/grupos", async (req, res) => {
-  try {
-    const { id } = req.query;
-    if (!id) return res.status(400).json({ error: "ID del alumno requerido" });
-
-    const grupos = await Grupo.find({ alumnos: id }).select("nombre carrera");
-    res.json(grupos);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-export default router;
-
+module.exports = router;

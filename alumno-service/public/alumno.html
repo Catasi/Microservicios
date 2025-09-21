@@ -1,112 +1,83 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <title>Portal del Alumno</title>
     <link rel="stylesheet" href="alumno.css">
 </head>
-
 <body>
-    <!-- Header -->
-    <header>
-        <div class="header-content">
-            <div class="logo">
-                <h1>Portal del Alumno</h1>
-            </div>
-            <div class="user-info">
-                <div class="user-avatar">AL</div>
-                <div>
-                    <div id="alumnoNombre" style="font-weight: 500;">Alumno Nombre</div>
-                    <div style="font-size: 0.9rem; opacity: 0.8;">Estudiante</div>
-                </div>
+<header>
+    <div class="header-content">
+        <div class="logo"><h1>Portal del Alumno</h1></div>
+        <div class="user-info">
+            <div class="user-avatar">AL</div>
+            <div>
+                <div id="alumnoNombre" style="font-weight: 500;">Alumno Nombre</div>
+                <div style="font-size: 0.9rem; opacity: 0.8;">Estudiante</div>
             </div>
         </div>
-    </header>
+    </div>
+</header>
 
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-content">
-            <button class="nav-btn active" onclick="showSection('info')">Mi Información</button>
-            <button class="nav-btn" onclick="showSection('calificaciones')">Mis Calificaciones</button>
-            <button class="nav-btn" onclick="showSection('grupos')">Mis Grupos</button>
-            <button class="nav-btn" onclick="showSection('cambiarContrasena')">Cambiar Contraseña</button>
+<nav>
+    <div class="nav-content">
+        <button class="nav-btn active" onclick="showSection('info', event)">Mi Información</button>
+        <button class="nav-btn" onclick="showSection('grupos', event)">Mis Calificaciones</button>
+        <button class="nav-btn" onclick="showSection('cambiarContrasena', event)">Cambiar Contraseña</button>
+    </div>
+</nav>
+
+<main>
+    <!-- Mi Información -->
+    <section id="info" class="section active">
+        <h2>Mi Información</h2>
+        <div class="student-card show">
+            <div class="student-info">
+                <div class="info-item"><div class="info-label">Nombre:</div><div class="info-value" id="idNombre"></div></div>
+                <div class="info-item"><div class="info-label">Matrícula:</div><div class="info-value" id="idMatricula"></div></div>
+                <div class="info-item"><div class="info-label">Usuario:</div><div class="info-value" id="idUsuario"></div></div>
+                <div class="info-item"><div class="info-label">Carrera:</div><div class="info-value" id="idCarrera"></div></div>
+            </div>
         </div>
-    </nav>
+    </section>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Mi Información -->
-        <section id="info" class="section active">
-            <h2>Mi Información</h2>
-            <div class="student-card show">
-                <div class="student-info">
-                    <div class="info-item">
-                        <div class="info-label">Nombre:</div>
-                        <div class="info-value" id="idNombre"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Matrícula:</div>
-                        <div class="info-value" id="idMatricula"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Usuario:</div>
-                        <div class="info-value" id="idUsuario"></div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Carrera:</div>
-                        <div class="info-value" id="idCarrera"></div>
-                    </div>
-                </div>
+    <!-- Mis Grupos y Calificaciones -->
+    <section id="grupos" class="section">
+      <h2>Mis Grupos</h2>
+      <div id="groupsContainer"></div>
+
+      <table id="tablaCalificaciones" class="tablaCalificaciones">
+        <thead>
+          <tr>
+            <th>Materia</th>
+            <th>Profesor</th>
+            <th>Calificación</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- Cambiar Contraseña -->
+    <section id="cambiarContrasena" class="section">
+        <h2>Cambiar Contraseña</h2>
+        <form id="formContrasena">
+            <div class="form-group">
+                <label for="contrasenaActual">Contraseña Actual:</label>
+                <input type="password" id="contrasenaActual" required>
             </div>
-        </section>
-
-        <!-- Mis Calificaciones -->
-        <section id="calificaciones" class="section">
-            <h2>Mis Calificaciones</h2>
-            <table id="tablaCalificaciones">
-                <thead>
-                    <tr>
-                        <th>Materia</th>
-                        <th>Profesor</th>
-                        <th>Calificación</th>
-                        <th>Fecha</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Se llenará con JS -->
-                </tbody>
-            </table>
-        </section>
-
-        <!-- Formulario de g
-         rupos -->
-        <section id="grupos" class="section">
-            <h2>Mis Grupos</h2>
-            <div id="studentsContainer" class="has-students">
-                <!-- Tags de grupos se llenan con JS -->
-                <p style="color: #666; text-align: center; margin: 0;">No hay grupos asignados</p>
+            <div class="form-group">
+                <label for="nuevaContrasena">Nueva Contraseña:</label>
+                <input type="password" id="nuevaContrasena" required>
             </div>
-        </section>
+            <div style="margin-top: 1rem;">
+                <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+            </div>
+        </form>
+    </section>
+</main>
 
-        <!-- Cambiar Contraseña -->
-        <section id="cambiarContrasena" class="section">
-            <h2>Cambiar Contraseña</h2>
-            <form id="formContrasena">
-                <div class="form-group">
-                    <label for="contrasenaActual">Contraseña Actual:</label>
-                    <input type="password" id="contrasenaActual" required>
-                </div>
-                <div class="form-group">
-                    <label for="nuevaContrasena">Nueva Contraseña:</label>
-                    <input type="password" id="nuevaContrasena" required>
-                </div>
-                <div style="margin-top: 1rem;">
-                    <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
-                </div>
-            </form>
-        </section>
-    </main>
 <script src="navegacion.js"></script>
 </body>
 </html>

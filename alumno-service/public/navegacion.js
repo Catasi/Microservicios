@@ -1,102 +1,70 @@
-/*
-// JS para la interfaz de alumno junto con su barra de navegacion 
-*/
-
+const alumnoId = "ID_DEL_ALUMNO"; // reemplazar con el _id real del alumno logueado que se genero en SE
 
 // Navegación entre secciones
-function showSection(sectionId) {
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
+function showSection(sectionId, event) {
+    document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
     document.getElementById(sectionId).classList.add('active');
-    event.target.classList.add('active');
+    if (event) event.currentTarget.classList.add('active');
 }
 
-/*
-// Manejo de la información del alumno simulada
-*/
+// Cargar información del alumno desde backend API
+window.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch(`/api/alumno/${alumnoId}`);
+        const alumno = await res.json();
 
-const alumnos = [
-  {
-    nombre: "Vanesa",
-    matricula: "A001",
-    usuario: "vanesa",
-    carrera: "TSU Desarrollo de Software",
-    grupos: ["Desarrollo Web"],
-    calificaciones: [
-      { materia: "Programación", profesor: "Lic. Pérez", calificacion: 95, fecha: "2025-09-15" }
-    ]
-  },
-  {
-    nombre: "Luis",
-    matricula: "A002",
-    usuario: "luis",
-    carrera: "TSU Desarrollo de Software",
-    grupos: ["Desarrollo Web"],
-    calificaciones: [
-      { materia: "Programación", profesor: "Lic. Pérez", calificacion: 88, fecha: "2025-09-15" }
-    ]
-  },
-  {
-    nombre: "Valeria Rea",
-    matricula: "20251001",
-    usuario: "valerea",
-    carrera: "Ingeniería en Sistemas",
-    grupos: ["ISC-7A", "ISC-7B"],
-    calificaciones: [
-      { materia: "Matemáticas", profesor: "Lic. García", calificacion: 9.5, fecha: "2025-09-15" },
-      { materia: "Física", profesor: "Dra. López", calificacion: 8.7, fecha: "2025-09-12" }
-    ]
-  }
-];
-const alumno = alumnos[1]; // Simulamos que "Vanesa" está logueada
+        document.getElementById('alumnoNombre').textContent = alumno.nombre;
+        document.getElementById('idNombre').textContent = alumno.nombre;
+        document.getElementById('idMatricula').textContent = alumno.matricula;
+        document.getElementById('idUsuario').textContent = alumno.usuario;
+        document.getElementById('idCarrera').textContent = alumno.carrera;
 
-// Cargar información del alumno al iniciar la página   
-
-window.onload = () => {
-    // Información general
-    document.getElementById('alumnoNombre').textContent = alumno.nombre;
-    document.getElementById('idNombre').textContent = alumno.nombre;
-    document.getElementById('idMatricula').textContent = alumno.matricula;
-    document.getElementById('idUsuario').textContent = alumno.usuario;
-    document.getElementById('idCarrera').textContent = alumno.carrera;
-
-    // Calificaciones
-    const tbody = document.getElementById('tablaCalificaciones').querySelector('tbody');
-    alumno.calificaciones.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${c.materia}</td><td>${c.profesor}</td><td>${c.calificacion}</td><td>${c.fecha}</td>`;
-        tbody.appendChild(tr);
-    });
-
-    // Grupos
-    const container = document.getElementById('studentsContainer');
-    if(alumno.grupos.length > 0) {
-        container.innerHTML = '';
-        alumno.grupos.forEach(g => {
-            const tag = document.createElement('div');
-            tag.className = 'student-tag';
-            tag.textContent = g;
-            container.appendChild(tag);
+        // Calificaciones
+        const tbody = document.getElementById('tablaCalificaciones').querySelector('tbody');
+        tbody.innerHTML = "";
+        alumno.calificaciones.forEach(c => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${c.materia}</td><td>${c.profesor}</td><td>${c.calificacion}</td><td>${new Date(c.fecha).toLocaleDateString()}</td>`;
+            tbody.appendChild(tr);
         });
+
+        // Grupos
+        const container = document.getElementById('groupsContainer');
+        container.innerHTML = "";
+        if (alumno.grupos.length > 0) {
+            alumno.grupos.forEach(g => {
+                const tag = document.createElement('div');
+                tag.className = 'student-tag';
+                tag.textContent = g;
+                container.appendChild(tag);
+            });
+        } else {
+            container.innerHTML = "<p>No hay grupos asignados</p>";
+        }
+
+    } catch (error) {
+        console.error("Error cargando alumno:", error);
     }
-}
+});
 
-/*
 // Cambio de contraseña
-*/
-
-document.getElementById('formContrasena').addEventListener('submit', function(e) {
+document.getElementById('formContrasena').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const actual = document.getElementById('contrasenaActual').value;
-    const nueva = document.getElementById('nuevaContrasena').value;
+    const contrasenaActual = document.getElementById('contrasenaActual').value;
+    const nuevaContrasena = document.getElementById('nuevaContrasena').value;
 
-    // Simulación de actualización
-    alert(`Contraseña cambiada correctamente\nActual: ${actual}\nNueva: ${nueva}`);
-    this.reset();
+    try {
+        const res = await fetch('/api/alumno/contrasena', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alumnoId, contrasenaActual, nuevaContrasena })
+        });
+        const data = await res.json();
+        alert(data.message);
+        this.reset();
+    } catch (error) {
+        alert("Error al cambiar la contraseña: " + error.message);
+    }
 });
