@@ -17,7 +17,8 @@ router.get('/inicio-sesion', async (req, res) => {
             });
         }
 
-        const servicios_escolares = await ServiciosEscolares.findOne({ usuario });
+        const servicios_escolares = await ServiciosEscolares.findOne({ usuario: usuario });
+        console.log(servicios_escolares);
         if (!servicios_escolares) {
             return res.status(404).json({
                 success: false,

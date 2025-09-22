@@ -5,9 +5,9 @@ import User from './models/User.js';
 
 async function createUser() {
     try {
-        const name = 'adminalumno';
-        const constrasenia = 'alumno123';
-        const rol = 'alumno';
+        const name = 'mgonzalezh';
+        const constrasenia = 'mg1001';
+        const rol = 'servicios_escolares';
         console.log('🔗 Conectando a la base de datos...');
         
         // Conectar a la base de datos

@@ -11,19 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Verificar token al cargar la página
     verifyToken();
 
-    const usuario = localStorage.getItem('userRole');
+    const usuario = localStorage.getItem('userName') || localStorage.getItem('username');
     loadUserInfo(usuario);
 
     async function loadUserInfo(usuario) {
         try {
-            const response = await fetch(`http://localhost:4005/api/SE/inicio-sesion?usuario=${encodeURIComponent(usuario)}`);
+            const response = await fetch(`http://localhost:4005/api/SE/inicio-sesion?usuario=${usuario}`);
             const data = await response.json();
         
             if (data.success) {
-                console.log('Datos del usuario:', data.data);
-                document.getElementById('usuario').textContent = data.data.nombre;
-                document.getElementById('puesto').textContent = data.data.puesto;
-                console.log('Info del usuario cargada:', data);
+                const userData = data.servicios_escolares;
+            
+                console.log('✅ Datos del usuario:', userData);
+                document.getElementById('usuario').textContent = userData.nombre;
+                document.getElementById('puesto').textContent = userData.puesto;
+                console.log('✅ Info del usuario cargada correctamente');
+                    console.log('Info del usuario cargada:', data);
             } else {
                 console.error('Error:', data.message);
                 return null;
