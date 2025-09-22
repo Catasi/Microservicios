@@ -10,7 +10,6 @@ import Alumno from "../models/Alumno.js";
 
 const router = express.Router();
 
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Revibe la creacion de profesor 
@@ -164,10 +163,7 @@ router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
   }
 });
 
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// 📌 Subir o actualizar calificación y notificar al servicio de alumnos
+// 📌 Subir o actualizar calificación y notificar al servicio de compañera
 
 router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
   try {

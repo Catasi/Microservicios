@@ -35,7 +35,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Catch-all para rutas que no sean API
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public", "test-profesores.html"));
 });
 
 // Servidor

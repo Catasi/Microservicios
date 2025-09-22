@@ -109,19 +109,19 @@ async function verifyToken() {
   try {
     console.log('🔍 Verificando token...');
     const response = await fetch('http://localhost:3001/api/auth/verify', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Token inválido');
     }
-  });
 
-  if (!response.ok) {
-    throw new Error('Token inválido');
-  }
-
-  const userData = await response.json();
-  console.log('✅ Token válido para:', userData.username);
+    const userData = await response.json();
+    console.log('✅ Token válido para:', userData.username);
 
   } catch (error) {
     console.error('❌ Token inválido:', error);
@@ -129,6 +129,7 @@ async function verifyToken() {
     logout();
   }
 }
+
 
 // Cargar grupos
 async function cargarGrupos() {
