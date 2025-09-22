@@ -12,7 +12,7 @@ const verifyToken = async (req, res, next) => {
         }
         
         // Verificar token con auth service - USAR POST
-        const authResponse = await axios.post('http://localhost:4004/api/auth/verify', 
+        const authResponse = await axios.post('http://localhost:3001/api/auth/verify', 
             {},
             {
                 headers: { 
@@ -51,7 +51,7 @@ router.post('/register', verifyToken, async (req, res) => {
 
         // Crear usuario en Auth service
         try {
-            await axios.post('http://localhost:4004/api/auth/register', {
+            await axios.post('http://localhost:3001/api/auth/register', {
                 username,
                 password,
                 role: position
