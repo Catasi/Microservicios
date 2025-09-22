@@ -111,19 +111,26 @@ async function addNewStudent() {
     }
 
     // Notificar nuevo alumno a ALUMNOS
-    const restAlumnos = await fetch(`${apiAlumnos}/nuevo-alumno`, {
+    const eventType = "nuevo-alumno";
+    const payload = { nombre, matricula, usuario, carrera, contrasenia };
+
+    const restAlumnos = await fetch(`${apiAlumnos}/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
+        body: JSON.stringify({ eventType, payload })
     });
     const dataAlumnos = await restAlumnos.json();
     console.log('Respuesta de API alumnos:', dataAlumnos);
 
     // Notificar nuevo alumno a AUTENTICACION
-    const restAuth = await fetch(`${apiAuth}/nuevo-alumno`, {
+    const role = "alumno";
+    const username = usuario;
+    const password = contrasenia;
+
+    const restAuth = await fetch(`${apiAuth}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
+        body: JSON.stringify({ username, password, role })
     });
     const dataAuth = await restAuth.json();
     console.log('Respuesta de API auth:', dataAuth);
@@ -186,13 +193,16 @@ async function modifyStudent() {
     }
 
     // Notificar nuevo alumno
-    const restAlum = await fetch(`${apiAlumnos}/modificar-alumno`, {
+    const eventType = "actualizar-alumno";
+    const payload = { nombre, matricula, usuario, carrera };
+
+    const restAlum = await fetch(`${apiAlumnos}/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, matricula, usuario, carrera })
+        body: JSON.stringify({ eventType, payload })
     });
     const dataAlum = await restAlum.json();
-    console.log('Respuesta del API padre:', dataAlum);
+    console.log('Respuesta del API alumnos:', dataAlum);
 }
 
 // Obtener profesores GetAll
@@ -271,7 +281,7 @@ async function createGroup() {
         console.log('Respuesta del API alumnos:', dataA);
 
     // Notificar nuevo grupo a PROFESORES
-    const restProf = await fetch(`${apiProfesoresE}/asignar-grupo`, {
+    const restProf = await fetch(`${apiProfesores}/asignar-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
