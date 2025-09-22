@@ -5,15 +5,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"node alumno-service/app.js\" \"node auth_service/app.js\" \"node profesores-service/server.js\" \"node rh-service/app.js\" \"node servicios_escolares/index.js\""
+    "dev": "concurrently \"node alumno-service/app.js\" \"node auth_service/app.js\" \"node profesores-service/server.js\" \"node rh-service/app.js\" \"node servicios_escolares/index.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.6.0",
-    "bcryptjs": "^2.4.3",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
