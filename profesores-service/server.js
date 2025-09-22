@@ -114,30 +114,32 @@ router.post("/login", async (req, res) => {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Middleware JWT
 function authMiddleware(req, res, next) {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (!token) return res.status(401).json({ error: "Token requerido" });
+  const authHeader = req.headers.authorization || req.headers.Authorization;
+  if (!authHeader) {
+    console.warn('authMiddleware: no Authorization header');
+    return res.status(401).json({ success: false, error: 'Token requerido' });
+  }
+
+  const token = authHeader.split(' ')[1] || authHeader;
+  console.log('authMiddleware: token recibido:', token);
 
   try {
-    // ⚠️ Usa el JWT_SECRET del auth service
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_AUTH_SERVICE);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('authMiddleware: token decodificado:', decoded);
 
-    // Mapear los campos del token de auth service a tu servicio
     req.user = {
-      id: decoded.userId,        // viene del token de 3001
-      usuario: decoded.username,
-      role: decoded.role
+      id: decoded.userId || decoded.id || decoded._id,
+      usuario: decoded.username || decoded.usuario || decoded.email,
+      role: decoded.role || decoded.puesto
     };
 
-    console.log("Middleware - usuario logueado:", req.user);
-    next();
-  } catch (error) {
-    console.error("Error verificando token:", error.message);
-    return res.status(401).json({ error: "Token inválido" });
+    return next();
+  } catch (err) {
+    console.error('authMiddleware: JWT verify error ->', err.message);
+    return res.status(401).json({ success: false, error: 'Token inválido' });
   }
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // 📌 Actualizar contraseña

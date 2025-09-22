@@ -1,291 +1,296 @@
-  <!DOCTYPE html>
-  <html lang="es">
-    <head>
-      <meta charset="UTF-8">
-      <title>Panel Profesor</title>
-      <link rel="stylesheet" href="style.css">
-    </head>
-
-    <body>
-      <header>
-          <div class="header-content">
-              <h1>Panel Profesor - SITO</h1>
-              <div class="user-section">
-                  <div class="user-info">
-                      <div class="user-avatar">PR</div>
-                      <div class="user-details">
-                          <div><p id="usuario">Cargando...</p></div>
-                          <div><p id="puesto">Profesor</p></div>
-                      </div>
-                  </div>
-                  <button class="logout-btn" onclick="logout()">
-                      <span>🚪</span>
-                      <span class="logout-text">Cerrar Sesión</span>
-                  </button>
-              </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel Profesor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <h1>Panel Profesor - SITO</h1>
+      <div class="user-section">
+        <div class="user-info">
+          <div class="user-avatar">PR</div>
+          <div class="user-details">
+            <div><p id="usuario">Cargando...</p></div>
+            <div><p id="puesto">Profesor</p></div>
           </div>
-      </header>
+        </div>
+        <button class="logout-btn" onclick="logout()">
+          <span>🚪</span>
+          <span class="logout-text">Cerrar Sesión</span>
+        </button>
+      </div>
+    </div>
+  </header>
 
-      <main>
-          <div class="card">
-              <h2>Mi Información</h2>
-              <div class="form-group">
-                  <label>Número de empleado</label>
-                  <input id="profNum" type="text" disabled>
-              </div>
-              <div class="form-group">
-                  <label>Usuario</label>
-                  <input id="profUsua" type="text" disabled>
-              </div>
-              <div class="form-group">
-                  <label>Nombre</label>
-                  <input id="profNombre" type="text" disabled>
-              </div>
-              <div class="form-group">
-                  <label>Contraseña</label>
-                  <div class="password-field">
-                      <input id="profPass" type="password">
-                      <button class="toggle-btn" onclick="togglePass()">👁</button>
-                  </div>
-              </div>
-              <button class="btn btn-primary" onclick="actualizarPassword()">
-                  🔐 Actualizar Contraseña
-              </button>
-              <div id="resPass"></div>
-          </div>
+  <main>
+    <div class="card">
+      <h2>Mi Información</h2>
+      <div class="form-group">
+        <label>Número de empleado</label>
+        <input id="profNum" type="text" disabled>
+      </div>
+      <div class="form-group">
+        <label>Usuario</label>
+        <input id="profUsua" type="text" disabled>
+      </div>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input id="profNombre" type="text" disabled>
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <div class="password-field">
+          <input id="profPass" type="password">
+          <button class="toggle-btn" onclick="togglePass()">👁</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="actualizarPassword()">
+        🔐 Actualizar Contraseña
+      </button>
+      <div id="resPass"></div>
+    </div>
 
-          <div class="card">
-              <h2>Mis Grupos</h2>
-              <div class="search-section">
-                  <div class="search-wrapper">
-                      <input id="searchInput" placeholder="Buscar grupo o alumno..." oninput="filtrar()">
-                      <select id="grupoSelect" onchange="filtrarSelect()">
-                          <option value="">-- Seleccionar grupo --</option>
-                      </select>
-                      <button class="clear-btn" onclick="limpiarBusqueda()">❌</button>
-                  </div>
-              </div>
-              <ul id="grupoLista" class="group-list"></ul>
-          </div>
-      </main>
+    <div class="card">
+      <h2>Mis Grupos</h2>
+      <div class="search-section">
+        <div class="search-wrapper">
+          <input id="searchInput" placeholder="Buscar grupo o alumno..." oninput="filtrar()">
+          <select id="grupoSelect" onchange="filtrarSelect()">
+            <option value="">-- Seleccionar grupo --</option>
+          </select>
+          <button class="clear-btn" onclick="limpiarBusqueda()">❌</button>
+        </div>
+      </div>
+      <ul id="grupoLista" class="group-list"></ul>
+    </div>
+  </main>
 
-    <script>
-      const API = "http://localhost:4003/api/profesores";
-      let token = localStorage.getItem("token");
-      let profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
-      let passwordPlano = localStorage.getItem("password") || "";
-      let grupos = [];
+<script>
+  const API = "http://localhost:4003/api/profesores";
 
-      if (!token) {
-        alert("No hay token. Redirigiendo al login...");
-        window.location.href = "/login.html";
-      }
+  // Tomar token y profesor del localStorage
+  let token = localStorage.getItem("token");
+  let profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
+  let passwordPlano = localStorage.getItem("password") || "";
+  let grupos = [];
 
-      verifyToken();
+  // Si no hay token, redirigir al login
+  if (!token) {
+    alert("No hay token. Redirigiendo al login...");
+    window.location.href = "http://localhost:3001/login.html";
+  }
 
-      // Mostrar datos del profesor
-      document.getElementById("profNum").value = profesor.numeroEmpleado || "";
-      document.getElementById("profNombre").value = profesor.nombre || "";
-      document.getElementById("profUsua").value = profesor.usuario || "";
-      document.getElementById("profPass").value = passwordPlano;
+  // Mostrar datos del profesor
+  document.getElementById("profNum").value = profesor.numeroEmpleado || "";
+  document.getElementById("profNombre").value = profesor.nombre || "";
+  document.getElementById("profUsua").value = profesor.usuario || "";
+  document.getElementById("profPass").value = passwordPlano;
 
-      // Mostrar/ocultar contraseña
-      function togglePass() {
-        const pass = document.getElementById("profPass");
-        pass.type = pass.type === "password" ? "text" : "password";
-      }
+  // Toggle contraseña
+  function togglePass() {
+    const pass = document.getElementById("profPass");
+    pass.type = pass.type === "password" ? "text" : "password";
+  }
 
-      // Actualizar contraseña
-      async function actualizarPassword() {
-        const password = document.getElementById("profPass").value.trim();
-        if (!password) { alert("⚠️ La contraseña no puede estar vacía"); return; }
+  // Logout
+  function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('profesor');
+    localStorage.removeItem('password');
+    window.location.href = "c:/Microservicios/login.html";
+  }
 
-        const res = await fetch(`${API}/mi-password`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ password })
-        });
-        const data = await res.json();
-        document.getElementById("resPass").textContent = JSON.stringify(data, null, 2);
-        if (data.mensaje) localStorage.setItem("password", password);
-      }
-
-      // Cerrar sesión
-      function logout() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userRole');
-        window.location.replace('file:///C:/Microservicios/login.html');
-      }
-
-      async function verifyToken() {
-        try {
-          console.log('🔍 Verificando token...');
-          const response = await fetch('http://localhost:3001/api/auth/verify', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-
-          if (!response.ok) {
-            throw new Error('Token inválido');
-          }
-
-          const userData = await response.json();
-          console.log('✅ Token válido para:', userData.username);
-
-        } catch (error) {
-          console.error('❌ Token inválido:', error);
-          alert('Sesión expirada. Por favor inicia sesión again.');
-          logout();
+  // Verificar token con el auth service
+  async function verifyToken() {
+    try {
+      const response = await fetch('http://localhost:3001/api/auth/verify', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
+      });
+
+      if (!response.ok) throw new Error('Token inválido');
+
+      const userData = await response.json();
+      console.log('✅ Token válido para:', userData.username);
+
+      // Actualizar token si auth service devuelve uno nuevo
+      if (userData.token) {
+        token = userData.token;
+        localStorage.setItem("token", token);
       }
 
+    } catch (error) {
+      alert('Sesión expirada. Por favor inicia sesión nuevamente.');
+      logout();
+    }
+  }
 
-      // Cargar grupos
-      async function cargarGrupos() {
-        console.log("Token usado:", token);
-        const res = await fetch(`${API}/mis-grupos`, { headers: { Authorization: `Bearer ${token}` } });
-        const data = await res.json();
-        if (!Array.isArray(data)) { alert("Error cargando grupos."); return; }
-        grupos = data;
-        renderGrupos();
-        llenarSelect();
+  verifyToken();
+
+  // Actualizar contraseña
+  async function actualizarPassword() {
+    const password = document.getElementById("profPass").value.trim();
+    if (!password) { alert("⚠️ La contraseña no puede estar vacía"); return; }
+
+    const res = await fetch(`${API}/mi-password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ password })
+    });
+    const data = await res.json();
+    document.getElementById("resPass").textContent = JSON.stringify(data, null, 2);
+    if (data.mensaje) localStorage.setItem("password", password);
+  }
+
+  // Cargar grupos
+  async function cargarGrupos() {
+  try {
+    const res = await fetch(`${API}/mis-grupos`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token  // <-- asegurarse de enviar el token
       }
+    });
 
-      // Render grupos y acordeón
-      function renderGrupos(lista = grupos, searchTerm = "") {
-        const ul = document.getElementById("grupoLista");
-        ul.innerHTML = "";
+    console.log('cargarGrupos: status', res.status);
+    if (!res.ok) {
+      const text = await res.text().catch(()=>null);
+      console.error('cargarGrupos: respuesta no OK', res.status, text);
+      return;
+    }
 
-        lista.forEach(g => {
-          const li = document.createElement("li");
-          li.textContent = `${g.materia} (${g.grupo})`;
+    const data = await res.json();
+    grupos = data.grupos || [];
+    renderGrupos();
+    llenarSelect();
+  } catch (err) {
+    console.error('cargarGrupos error:', err);
+  }
+}
+    
 
-          const container = document.createElement("div");
-          container.className = "alumnos-container";
-          container.style.display = "none";
-          container.id = `alumnos-${g._id}`;
-          li.appendChild(container);
+  // Renderizar grupos
+  function renderGrupos(lista = grupos, searchTerm = "") {
+    const ul = document.getElementById("grupoLista");
+    ul.innerHTML = "";
 
-          // Solo toggle cuando se hace click en el li, no en inputs ni botones dentro
-          li.addEventListener("click", async (e) => {
-            if (e.target.tagName.toLowerCase() === "input" || e.target.tagName.toLowerCase() === "button") return;
-            const div = document.getElementById(`alumnos-${g._id}`);
-            if (div.style.display === "none") {
-              div.style.display = "block";
-              await mostrarAlumnos(g._id, g.materia, g.grupo, div, searchTerm);
-            } else {
-              div.style.display = "none";
-            }
-          });
+    lista.forEach(g => {
+      const li = document.createElement("li");
+      li.textContent = `${g.materia} (${g.grupo})`;
 
-          ul.appendChild(li);
+      const container = document.createElement("div");
+      container.className = "alumnos-container";
+      container.style.display = "none";
+      container.id = `alumnos-${g._id}`;
+      li.appendChild(container);
 
-          // Si hay búsqueda, desplegar automáticamente si hay coincidencia
-          if (searchTerm !== "") {
-            const matchGrupo = `${g.materia} (${g.grupo})`.toLowerCase().includes(searchTerm);
-            if (matchGrupo) {
-              container.style.display = "block";
-              mostrarAlumnos(g._id, g.materia, g.grupo, container, searchTerm);
-            }
-          }
-        });
-      }
+      li.addEventListener("click", async (e) => {
+        if (e.target.tagName.toLowerCase() === "input" || e.target.tagName.toLowerCase() === "button") return;
+        const div = document.getElementById(`alumnos-${g._id}`);
+        if (div.style.display === "none") {
+          div.style.display = "block";
+          await mostrarAlumnos(g._id, g.materia, g.grupo, div, searchTerm);
+        } else {
+          div.style.display = "none";
+        }
+      });
 
-      // Llenar select de grupos
-      function llenarSelect() {
-        const sel = document.getElementById("grupoSelect");
-        sel.innerHTML = `<option value="">-- Seleccionar grupo --</option>`;
-        grupos.forEach(g => {
-          const opt = document.createElement("option");
-          opt.value = g._id;
-          opt.textContent = `${g.materia} (${g.grupo})`;
-          sel.appendChild(opt);
-        });
-      }
+      ul.appendChild(li);
+    });
+  }
 
-      // Mostrar alumnos, solo filas que coincidan si searchTerm existe
-      async function mostrarAlumnos(grupoId, materia, grupoNombre, container, searchTerm = "") {
-        const res = await fetch(`${API}/mis-grupos/${grupoId}/alumnos`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        let alumnos = await res.json();
+  function llenarSelect() {
+    const sel = document.getElementById("grupoSelect");
+    sel.innerHTML = `<option value="">-- Seleccionar grupo --</option>`;
+    grupos.forEach(g => {
+      const opt = document.createElement("option");
+      opt.value = g._id;
+      opt.textContent = `${g.materia} (${g.grupo})`;
+      sel.appendChild(opt);
+    });
+  }
 
-        let html = `<table>
-          <tr><th>Matrícula</th><th>Nombre</th><th>Materia</th><th>Grupo</th><th>Calificación</th></tr>`;
+  async function mostrarAlumnos(grupoId, materia, grupoNombre, container, searchTerm = "") {
+    const res = await fetch(`${API}/mis-grupos/${grupoId}/alumnos`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const alumnos = await res.json();
 
-        alumnos.forEach(a => {
-          const calificacionesDelGrupo = (a.calificaciones || []).filter(c => {
-            const grupoObjId = c.grupo?._id || c.grupo;
-            return String(grupoObjId) === String(grupoId) && c.materia === materia;
-          });
-          const calObj = calificacionesDelGrupo.sort((x, y) => new Date(y.fecha) - new Date(x.fecha))[0] || {};
+    let html = `<table>
+      <tr><th>Matrícula</th><th>Nombre</th><th>Materia</th><th>Grupo</th><th>Calificación</th></tr>`;
 
-          const match = searchTerm === "" || 
-                        a.nombre.toLowerCase().includes(searchTerm) || 
-                        a.matricula.includes(searchTerm) || 
-                        `${materia} (${grupoNombre})`.toLowerCase().includes(searchTerm);
-          if (!match) return;
+    alumnos.forEach(a => {
+      const calificacionesDelGrupo = (a.calificaciones || []).filter(c =>
+        String(c.grupo?._id || c.grupo) === String(grupoId) && c.materia === materia
+      );
+      const calObj = calificacionesDelGrupo.sort((x, y) => new Date(y.fecha) - new Date(x.fecha))[0] || {};
 
-          html += `<tr>
-            <td>${a.matricula}</td>
-            <td>${a.nombre}</td>
-            <td>${materia}</td>
-            <td>${grupoNombre}</td>
-            <td>
-              <input id="cal-${a.matricula}" placeholder="Calificación" value="${calObj.calificacion || ''}">
-              <button class="save-btn" onclick="guardarCal('${grupoId}','${a.matricula}','${materia}','${container.id}')">💾</button>
-            </td>
-          </tr>`;
-        });
+      const match = searchTerm === "" ||
+                    a.nombre.toLowerCase().includes(searchTerm) ||
+                    a.matricula.includes(searchTerm) ||
+                    `${materia} (${grupoNombre})`.toLowerCase().includes(searchTerm);
+      if (!match) return;
 
-        container.innerHTML = html;
-      }
+      html += `<tr>
+        <td>${a.matricula}</td>
+        <td>${a.nombre}</td>
+        <td>${materia}</td>
+        <td>${grupoNombre}</td>
+        <td>
+          <input id="cal-${a.matricula}" placeholder="Calificación" value="${calObj.calificacion || ''}">
+          <button class="save-btn" onclick="guardarCal('${grupoId}','${a.matricula}','${materia}','${container.id}')">💾</button>
+        </td>
+      </tr>`;
+    });
 
-      // Guardar calificación
-      async function guardarCal(grupoId, matricula, materia, containerId) {
-        const calInput = document.getElementById(`cal-${matricula}`);
-        const cal = calInput.value.trim();
-        if (cal === "") { alert("⚠️ La calificación no puede estar vacía"); return; }
-        const numCal = Number(cal);
-        if (isNaN(numCal) || numCal < 0) { alert("⚠️ Ingresa un número válido"); return; }
+    container.innerHTML = html;
+  }
 
-        const res = await fetch(`${API}/mis-grupos/${grupoId}/calificaciones`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ matricula, materia, calificacion: numCal })
-        });
+  async function guardarCal(grupoId, matricula, materia, containerId) {
+    const calInput = document.getElementById(`cal-${matricula}`);
+    const cal = calInput.value.trim();
+    if (cal === "") { alert("⚠️ La calificación no puede estar vacía"); return; }
+    const numCal = Number(cal);
+    if (isNaN(numCal) || numCal < 0) { alert("⚠️ Ingresa un número válido"); return; }
 
-        alert("Guardado: " + JSON.stringify(await res.json()));
-        const container = document.getElementById(containerId);
-        mostrarAlumnos(grupoId, materia, grupos.find(g => g._id === grupoId)?.grupo, container);
-      }
+    const res = await fetch(`${API}/mis-grupos/${grupoId}/calificaciones`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ matricula, materia, calificacion: numCal })
+    });
 
-      // Filtrar lista y alumnos
-      function filtrar() {
-        const q = document.getElementById("searchInput").value.toLowerCase();
-        renderGrupos(grupos, q);
-      }
+    alert("Guardado: " + JSON.stringify(await res.json()));
+    const container = document.getElementById(containerId);
+    mostrarAlumnos(grupoId, materia, grupos.find(g => g._id === grupoId)?.grupo, container);
+  }
 
-      // Filtrar select
-      function filtrarSelect() {
-        const id = document.getElementById("grupoSelect").value;
-        if (!id) renderGrupos();
-        else renderGrupos(grupos.filter(g => g._id === id));
-      }
+  // Filtrar lista y select
+  function filtrar() {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+    renderGrupos(grupos, q);
+  }
 
-      // Limpiar búsqueda
-      function limpiarBusqueda() {
-        document.getElementById("searchInput").value = "";
-        document.getElementById("grupoSelect").value = "";
-        renderGrupos();
-      }
+  function filtrarSelect() {
+    const id = document.getElementById("grupoSelect").value;
+    if (!id) renderGrupos();
+    else renderGrupos(grupos.filter(g => g._id === id));
+  }
 
-      // Inicializar
-      cargarGrupos();
-    </script>
-    </body>
-  </html>
+  function limpiarBusqueda() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("grupoSelect").value = "";
+    renderGrupos();
+  }
 
+  // Inicializar carga de grupos
+  cargarGrupos();
+</script>
+</body>
+</html>
