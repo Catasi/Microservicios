@@ -425,7 +425,7 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
     await alumno.save();
 
     // 🔔 Notificar al servicio de tu compañera
-    axios.post("http://localhost:5000/api/alumnos/calificaciones", {
+    axios.post("http://localhost:4001/api/alumnos/calificaciones", {
       alumnoId: alumno._id.toString(),
       matricula: alumno.matricula,
       grupo: grupo.nombre || grupo._id.toString(), // según lo que su DB use
