@@ -7,6 +7,12 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import profesorRoutes from "./routes/profesorRoutes.js";
 
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import axios from "axios";
+
+
 // Configuración inicial
 dotenv.config();
 connectDB();
