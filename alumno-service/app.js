@@ -122,7 +122,7 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
     // Notificar al servicio de autenticación sobre el cambio de contraseña
     try {
       await axios.post(
-        "http://localhost:3001/api/auth/change-password", // endpoint del servicio auth
+        "http://localhost:3001/api/auth//change-password", // endpoint del servicio auth
         {
           username: alumno.usuario,  // nombre de usuario del alumno
           newPassword: password       // nueva contraseña
@@ -144,47 +144,66 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
   }
 });
 
-
-// Ver el grupo al que estoy asignado
-router.get("/mi-grupo", authMiddleware, async (req, res) => {
+// Recibir grupo desde el servicio de profesores
+router.post("/recibir-grupo", async (req, res) => {
   try {
-    // Buscar el grupo donde el alumno esté en la lista de alumnos
-    const grupo = await Grupo.findOne({ alumnos: req.user.id })
-      .populate("profesor", "numeroEmpleado usuario nombre puesto")
-      .populate("alumnos", "matricula nombre carrera");
+    const { nombre, carrera, profesorNoEmpleado, alumnos } = req.body;
 
-    if (!grupo) return res.status(404).json({ error: "No estás asignado a ningún grupo" });
+    // Buscar profesor por número de empleado
+    const profesor = await Profesor.findOne({ numeroEmpleado: profesorNoEmpleado });
+    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
-    res.json(grupo);
+    // Buscar alumnos en la DB y mapear a ObjectId
+    const alumnoIds = [];
+    for (const a of alumnos) {
+      const alumno = await Alumno.findOne({ matricula: a.matricula });
+      if (alumno) alumnoIds.push(alumno._id);
+    }
+
+    if (!alumnoIds.length) return res.status(400).json({ error: "No se encontraron alumnos válidos" });
+
+    // Crear o actualizar grupo
+    const grupo = await Grupo.findOneAndUpdate(
+      { nombre, carrera },
+      { nombre, carrera, profesor: profesor._id, alumnos: alumnoIds },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(201).json({ message: "Grupo recibido y registrado", grupo });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "Error al registrar grupo: " + error.message });
   }
 });
 
-// Ver mis calificaciones
-router.get("/mis-calificaciones", authMiddleware, async (req, res) => {
-  try {
-    // Buscar al alumno
-    const alumno = await Alumno.findById(req.user.id)
-      .populate("calificaciones.grupo", "nombre carrera") // traer info del grupo
-      .populate("calificaciones.profesor", "numeroEmpleado nombre usuario puesto"); // info del profesor
 
+// routes/alumnoRoutes.js Recibe las calificaciones desde el servicio de profesores
+router.post("/recibir-calificacion", async (req, res) => {
+  try {
+    const { matricula, materia, calificacion, grupoId, profesorId } = req.body;
+
+    const alumno = await Alumno.findOne({ matricula });
     if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
 
-    res.json({
-      alumno: {
-        id: alumno._id,
-        matricula: alumno.matricula,
-        nombre: alumno.nombre,
-        carrera: alumno.carrera
-      },
-      calificaciones: alumno.calificaciones
-    });
+    const calIndex = alumno.calificaciones.findIndex(c =>
+      c.grupo?.toString() === grupoId && c.materia === materia
+    );
+
+    if (calIndex >= 0) {
+      alumno.calificaciones[calIndex].calificacion = calificacion;
+      alumno.calificaciones[calIndex].profesor = profesorId;
+      alumno.calificaciones[calIndex].fecha = new Date();
+    } else {
+      alumno.calificaciones.push({ grupo: grupoId, materia, calificacion, profesor: profesorId, fecha: new Date() });
+    }
+
+    await alumno.save();
+
+    res.status(201).json({ message: "✅ Calificación recibida y guardada", alumno });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
-  
 });
+
 
 //PUERTO DEL SERVIDOR
 const PORT = process.env.PORT || 4001;
