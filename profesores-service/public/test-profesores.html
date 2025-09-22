@@ -33,7 +33,7 @@ th { background: #f4f4f4; }
 <label>Número de empleado</label>
 <input id="profNum" disabled>
 <label>Usuario</label>
-<input id="profUsua">
+<input id="profUsua" disabled>
 <label>Nombre</label>
 <input id="profNombre" disabled>
 <label>Contraseña</label>
@@ -102,7 +102,7 @@ async function actualizarPassword() {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('userRole');
-  window.location.replace('/login.html');
+  window.location.replace('file:///C:/Microservicios/login.html');
 }
 
 async function verifyToken() {
