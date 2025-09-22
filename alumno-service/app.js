@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // Catch-all para rutas que no sean API
 app.get(/^\/(?!api).*/, (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "login.html"));
+  res.sendFile(path.join(__dirname, "public", "alumno.html"));
 });
 
 // Servidor
@@ -183,6 +183,13 @@ router.get("/mis-calificaciones", authMiddleware, async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+  
+});
+
+//PUERTO DEL SERVIDOR
+const PORT = process.env.PORT || 4001;
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
 
 export default router;
