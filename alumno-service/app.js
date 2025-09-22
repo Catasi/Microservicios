@@ -144,37 +144,6 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
   }
 });
 
-// Recibir grupo desde el servicio de profesores
-router.post("/recibir-grupo", async (req, res) => {
-  try {
-    const { nombre, carrera, profesorNoEmpleado, alumnos } = req.body;
-
-    // Buscar profesor por número de empleado
-    const profesor = await Profesor.findOne({ numeroEmpleado: profesorNoEmpleado });
-    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
-
-    // Buscar alumnos en la DB y mapear a ObjectId
-    const alumnoIds = [];
-    for (const a of alumnos) {
-      const alumno = await Alumno.findOne({ matricula: a.matricula });
-      if (alumno) alumnoIds.push(alumno._id);
-    }
-
-    if (!alumnoIds.length) return res.status(400).json({ error: "No se encontraron alumnos válidos" });
-
-    // Crear o actualizar grupo
-    const grupo = await Grupo.findOneAndUpdate(
-      { nombre, carrera },
-      { nombre, carrera, profesor: profesor._id, alumnos: alumnoIds },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-
-    res.status(201).json({ message: "Grupo recibido y registrado", grupo });
-  } catch (error) {
-    res.status(500).json({ error: "Error al registrar grupo: " + error.message });
-  }
-});
-
 
 // routes/alumnoRoutes.js Recibe las calificaciones desde el servicio de profesores
 router.post("/recibir-calificacion", async (req, res) => {
