@@ -6,6 +6,42 @@ import Grupo from '../models/Grupos.js';
 
 const router = express.Router();
 
+// Ruta para inicio de sesión
+router.get('/inicio-sesion', async (req, res) => {
+    try {
+        const { usuario } = req.query;
+        if (!usuario) {
+            return res.status(400).json({
+                success: false,
+                message: 'El campo usuario es requerido'
+            });
+        }
+
+        const servicios_escolares = await ServiciosEscolares.findOne({ usuario: usuario });
+        console.log(servicios_escolares);
+        if (!servicios_escolares) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+        res.json({
+            success: true,
+            data: {
+                no_empleado: servicios_escolares.no_empleado,
+                nombre: servicios_escolares.nombre,
+                puesto: servicios_escolares.puesto,
+                usuario: servicios_escolares.usuario
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message });
+    }
+});
+
 // Ruta para agregar alumno
 router.post('/agregar-alumno', async (req, res) => {
     try {
@@ -221,4 +257,4 @@ router.post('/nuevo-profesor', express.json(), async (req, res) => {
 });
 
 
-export default router; 
+export default router;
