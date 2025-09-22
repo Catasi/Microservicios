@@ -180,46 +180,41 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
 });
 */
 
-//  Recibo el grupo asignado desde SE y lo almaceno en el alumno
+// Recibir grupo desde SE para asignar alumnos
 router.post("/recibir-grupo", async (req, res) => {
   try {
-    const { matricula, grupoId } = req.body;
+    const { nombre, materia, carrera, profesorNoEmpleado, alumnos } = req.body;
 
-    const alumno = await Alumno.findOne({ matricula });
-    if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
-
-    alumno.grupo = grupoId;
-    await alumno.save();
-
-    res.status(200).json({ message: "✅ Grupo asignado al alumno", alumno });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Ver mi grupo actual
-router.get("/mi-grupo", authMiddleware, async (req, res) => {
-  try {
-    const alumno = await Alumno.findById(req.user.id)
-      .populate("grupo", "nombre carrera")
-      .populate("grupo.profesor", "numeroEmpleado nombre usuario puesto");
-
-    if (!alumno || !alumno.grupo) {
-      return res.status(404).json({ error: "No tienes grupo asignado aún" });
+    // Buscar profesor en la base por su número de empleado
+    const profesor = await Profesor.findOne({ numeroEmpleado: profesorNoEmpleado });
+    if (!profesor) {
+      return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
     }
 
-    res.json({
-      alumno: {
-        matricula: alumno.matricula,
-        nombre: alumno.nombre,
-        carrera: alumno.carrera
-      },
-      grupo: alumno.grupo
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    // Buscar alumnos en la DB y mapearlos a sus ObjectId
+    const alumnoIds = [];
+    for (let a of alumnos) {
+      const alumno = await Alumno.findOne({ matricula: a.matricula });
+      if (alumno) alumnoIds.push(alumno._id);
+    }
+
+    if (!alumnoIds.length) {
+      return res.status(400).json({ error: "No se encontraron alumnos válidos en la base" });
+    }
+
+    //  Crear o actualizar grupo en este servicio
+    const grupo = await Grupo.findOneAndUpdate(
+      { nombre, materia, carrera },
+      { nombre, materia, carrera, profesor: profesor._id, alumnos: alumnoIds },
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    res.status(201).json({ message: "✅ Grupo recibido y registrado para alumnos", grupo });
+  } catch (err) {
+    res.status(500).json({ error: "Error al registrar grupo: " + err.message });
   }
 });
+
 
 //  Ver mis calificaciones
 router.get("/calificaciones", authMiddleware, async (req, res) => {

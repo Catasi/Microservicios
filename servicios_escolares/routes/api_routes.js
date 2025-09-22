@@ -18,7 +18,7 @@ router.get('/inicio-sesion', async (req, res) => {
         }
 
         const servicios_escolares = await ServiciosEscolares.findOne({ usuario: usuario });
-        console.log(servicios_escolares);
+        
         if (!servicios_escolares) {
             return res.status(404).json({
                 success: false,
@@ -157,7 +157,7 @@ router.get('/profesores', async (req, res) => {
 // Ruta para crear grupo
 router.post('/crear-grupo', async (req, res) => {
     try {
-    const { nombre, carrera, profesorId, alumnos } = req.body;
+    const { nombre, carrera, materia, profesorId, alumnos } = req.body;
         
         // Validación de campos requeridos
         if (!nombre || !carrera || !profesorId) {
@@ -180,6 +180,7 @@ router.post('/crear-grupo', async (req, res) => {
         const nuevoGrupo = new Grupo({ 
             nombre, 
             carrera,
+            materia,
             profe: {
                 nombre: profesor.nombre,
                 no_empleado: profesor.no_empleado,
