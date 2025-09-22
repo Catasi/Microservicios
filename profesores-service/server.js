@@ -42,10 +42,6 @@ app.get(/^\/(?!api).*/, (req, res) => {
 const router = express.Router();
 
 
-/* -------------------------
-   (Mantengo tus rutas originales)
-   ------------------------- */
-
 // 🔑 Login de profesor
 router.post("/login", async (req, res) => {
   try {
