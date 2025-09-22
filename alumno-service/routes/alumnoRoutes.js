@@ -1,46 +1,159 @@
 import express from "express";
 import bcrypt from "bcryptjs";
-import axios from "axios";
+import jwt from "jsonwebtoken";
 import Alumno from "../models/Alumno.js";
+import Grupo from "../models/Grupo.js";
 
 const router = express.Router();
 
-// =========================
-// Ver grupos asignados a un alumno CHECRAR LAS RUTAS PORFIS
-// =========================
-router.get("/:id/grupos", async (req, res) => {
+// Middleware JWT
+function authMiddleware(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Token requerido" });
   try {
-    const { id } = req.params;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: "Token inválido" });
+  }
+}
 
-    const alumno = await Alumno.findById(id).select("matricula nombre grupos");
-    if (!alumno) {
-      return res.status(404).json({ error: "Alumno no encontrado" });
+/* -------------------------
+   Helpers internos
+   ------------------------- */
+const trimStr = s => typeof s === 'string' ? s.trim() : s;
+
+const getFirst = (obj, keys = []) => {
+  if (!obj) return undefined;
+  for (const k of keys) {
+    if (Object.prototype.hasOwnProperty.call(obj, k) && obj[k] != null) return obj[k];
+  }
+  return undefined;
+};
+
+// =========================
+// Crear/actualizar alumno desde SE
+// =========================
+async function ensureAlumno(data = {}) {
+  const matricula = trimStr(getFirst(data, ["matricula", "matrícula", "id", "studentId"]));
+  const nombre = trimStr(getFirst(data, ["nombre", "name"]));
+  const usuario = trimStr(getFirst(data, ["usuario", "user"]));
+  const carrera = trimStr(getFirst(data, ["carrera", "career"]));
+  const rawPassword = getFirst(data, ["password", "contrasenia", "contrasena"]);
+  const incomingHash = getFirst(data, ["passwordHash", "password_hash"]);
+
+  const filter = matricula ? { matricula } : (usuario ? { usuario } : (nombre ? { nombre } : {}));
+  const update = {};
+  if (nombre) update.nombre = nombre;
+  if (usuario) update.usuario = usuario;
+  if (carrera) update.carrera = carrera;
+
+  if (rawPassword) update.password = await bcrypt.hash(String(rawPassword), 10);
+  else if (incomingHash) update.password = incomingHash;
+
+  const opts = { new: true, upsert: true, setDefaultsOnInsert: true };
+  return await Alumno.findOneAndUpdate(filter, update, opts);
+}
+
+// ==========================
+//  endpoint (recibe alumnos de SE)
+// ==========================
+router.post("/sync", express.json(), async (req, res) => {
+  try {
+    const { eventType, payload } = req.body;
+    if (!payload) return res.status(400).json({ success: false, message: "Falta payload" });
+
+    let result;
+    switch ((eventType || "").toLowerCase()) {
+      case "nuevo-alumno":
+      case "alumno-creado":
+      case "create-alumno":
+        result = await ensureAlumno(payload);
+        break;
+
+      case "actualizar-alumno":
+      case "alumno-actualizado":
+      case "update-alumno":
+        result = await ensureAlumno(payload);
+        break;
+
+      default:
+        if (getFirst(payload, ["matricula", "matrícula"])) result = await ensureAlumno(payload);
+        else result = { message: "No se pudo inferir el tipo de recurso; envía eventType explícito", keys: Object.keys(payload || {}) };
     }
 
-    res.json({
-      alumno: {
-        id: alumno._id,
-        matricula: alumno.matricula,
-        nombre: alumno.nombre,
-      },
-      grupos: alumno.grupos
-    });
+    res.json({ success: true, eventType: eventType || "inferred", result });
+
+  } catch (error) {
+    console.error("SYNC ERROR:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==========================
+// Login alumno
+// ==========================
+router.post("/login", async (req, res) => {
+  try {
+    const { matricula, password } = req.body;
+    const alumno = await Alumno.findOne({ matricula });
+    if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
+
+    const match = await bcrypt.compare(password, alumno.password);
+    if (!match) return res.status(401).json({ error: "Contraseña incorrecta" });
+
+    const token = jwt.sign(
+      { id: alumno._id, matricula: alumno.matricula, usuario: alumno.usuario },
+      process.env.JWT_SECRET,
+      { expiresIn: "2h" }
+    );
+
+    res.json({ mensaje: "Login exitoso", token, alumno });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// =========================
-// Ver calificaciones de un alumno
-// =========================
-router.get("/:id/calificaciones", async (req, res) => {
+// ==========================
+// Cambiar mi contraseña
+// ==========================
+router.put("/mi-password", authMiddleware, async (req, res) => {
   try {
-    const { id } = req.params;
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: "Contraseña requerida" });
 
-    const alumno = await Alumno.findById(id).select("matricula nombre calificaciones");
-    if (!alumno) {
-      return res.status(404).json({ error: "Alumno no encontrado" });
-    }
+    const passwordHash = await bcrypt.hash(password, 10);
+    const alumno = await Alumno.findByIdAndUpdate(req.user.id, { password: passwordHash }, { new: true });
+    if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
+
+    res.json({ mensaje: "Contraseña actualizada ✅" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================
+// Ver mis grupos
+// ==========================
+router.get("/mis-grupos", authMiddleware, async (req, res) => {
+  try {
+    const grupos = await Grupo.find({ alumnos: req.user.id })
+      .populate("alumnos", "matricula nombre carrera")
+      .populate("profesor", "numeroEmpleado usuario nombre puesto");
+    res.json(grupos);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==========================
+// Ver mis calificaciones
+// ==========================
+router.get("/calificaciones", authMiddleware, async (req, res) => {
+  try {
+    const alumno = await Alumno.findById(req.user.id).select("matricula nombre calificaciones");
+    if (!alumno) return res.status(404).json({ error: "Alumno no encontrado" });
 
     res.json({
       alumno: {
@@ -50,56 +163,6 @@ router.get("/:id/calificaciones", async (req, res) => {
       },
       calificaciones: alumno.calificaciones
     });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// =========================
-// Actualizar contraseña de un alumno + notificar a SE y Auth
-// =========================
-router.put("/contrasena", async (req, res) => {
-  try {
-    const { id, password, passwordActual } = req.body;
-
-    if (!id || !password) {
-      return res.status(400).json({ error: "ID y nueva contraseña requeridos" });
-    }
-
-    const alumno = await Alumno.findById(id);
-    if (!alumno) {
-      return res.status(404).json({ error: "Alumno no encontrado" });
-    }
-
-    // Verificar contraseña actual si fue enviada
-    if (passwordActual) {
-      const isMatch = await bcrypt.compare(passwordActual, alumno.password);
-      if (!isMatch) {
-        return res.status(400).json({ error: "Contraseña actual incorrecta" });
-      }
-    }
-
-    // Encriptar nueva contraseña
-    const salt = await bcrypt.genSalt(10);
-    alumno.password = await bcrypt.hash(password, salt);
-
-    await alumno.save();
-
-    // Notificar a Servicios Escolares
-    axios.post("http://localhost:5000/api/servicios-escolares/notificar", {
-      alumnoId: id,
-      matricula: alumno.matricula,
-      mensaje: "El alumno ha actualizado su contraseña"
-    }).catch(err => console.error("Error notificando a SE:", err.message));
-
-    // Notificar a Autenticación
-    axios.post("http://localhost:4000/api/auth/notificar-cambio", {
-      alumnoId: id,
-      usuario: alumno.usuario,
-      mensaje: "El alumno ha actualizado su contraseña"
-    }).catch(err => console.error("Error notificando a Auth:", err.message));
-
-    res.json({ message: "Contraseña actualizada, notificado a SE y Auth" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
