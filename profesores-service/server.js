@@ -317,7 +317,7 @@ router.post("/login", async (req, res) => {
     );
 
     // 🔔 Notificar al servicio login
-    axios.post("http://localhost:PUERTO_DEL_SERVICIO_COMPANERO/api/auth/notificar-login", {
+    axios.post("http://localhost:3001/api/auth/notificar-login", {
       usuario: profesor.usuario,
       numeroEmpleado: profesor.numeroEmpleado
     }, {
