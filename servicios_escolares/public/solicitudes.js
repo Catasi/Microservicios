@@ -272,16 +272,16 @@ async function createGroup() {
     }
 
     // Notificar nuevo grupo a ALUMNOS
-    const rest = await fetch(`${apiAlumnos}/asignar-grupo`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
-    });
-        const dataA = await rest.json();
-        console.log('Respuesta del API alumnos:', dataA);
+    // const rest = await fetch(`${apiAlumnos}/recibir-grupo`, {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
+    // });
+    //     const dataA = await rest.json();
+    //     console.log('Respuesta del API alumnos:', dataA);
 
     // Notificar nuevo grupo a PROFESORES
-    const restProf = await fetch(`${apiProfesores}/asignar-grupo`, {
+    const restProf = await fetch(`${apiProfesores}/nuevo-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
