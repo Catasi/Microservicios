@@ -118,14 +118,22 @@ router.post("/login", async (req, res) => {
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(401).json({ error: "Token requerido" });
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+
+    req.user = {
+      id: decoded.id || decoded.userId,
+      usuario: decoded.usuario || decoded.username,
+      role: decoded.role
+    };
+
     next();
   } catch (error) {
     return res.status(401).json({ error: "Token inválido" });
   }
 }
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -142,7 +150,7 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
     );
     if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
-     // 3️⃣ Notificar al servicio 
+    // 3️⃣ Notificar al servicio 
     try {
       await axios.post(
         "http://localhost:3001/api/auth/change-password", // endpoint 
@@ -254,35 +262,35 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
 
 // Recibir grupo desde el otro servicio
 router.post("/nuevo-grupo", async (req, res) => {
-    try {
-        const { nombre, materia, carrera, profesor, alumnos } = req.body;
+  try {
+    const { nombre, materia, carrera, profesor, alumnos } = req.body;
 
-        // Buscar profesor en TU base por número de empleado
-        const profe = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
-        if (!profe) return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
+    // Buscar profesor en TU base por número de empleado
+    const profe = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
+    if (!profe) return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
 
-        // Buscar alumnos en TU base y mapear a ObjectId
-        const alumnosIds = [];
-        for (let a of alumnos) {
-            const alumno = await Alumno.findOne({ matricula: a.matricula });
-            if (alumno) alumnosIds.push(alumno._id);
-        }
-
-        // Crear grupo en TU servicio
-        const nuevoGrupo = new Grupo({
-            grupo: nombre,
-            materia,
-            carrera,
-            profesor: profe._id,
-            alumnos: alumnosIds
-        });
-
-        await nuevoGrupo.save();
-
-        res.status(201).json({ message: "Grupo creado en mi servicio", grupo: nuevoGrupo });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
+    // Buscar alumnos en TU base y mapear a ObjectId
+    const alumnosIds = [];
+    for (let a of alumnos) {
+      const alumno = await Alumno.findOne({ matricula: a.matricula });
+      if (alumno) alumnosIds.push(alumno._id);
     }
+
+    // Crear grupo en TU servicio
+    const nuevoGrupo = new Grupo({
+      grupo: nombre,
+      materia,
+      carrera,
+      profesor: profe._id,
+      alumnos: alumnosIds
+    });
+
+    await nuevoGrupo.save();
+
+    res.status(201).json({ message: "Grupo creado en mi servicio", grupo: nuevoGrupo });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
