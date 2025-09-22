@@ -19,6 +19,7 @@ connectDB();
 
 const app = express();
 
+const PORT = process.env.PORT || 4003;
 // Necesario para __dirname con ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,6 +41,10 @@ app.get(/^\/(?!api).*/, (req, res) => {
 
 // Servidor
 const router = express.Router();
+
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor Profesores corriendo en http://localhost:${PORT}`);
+});
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
