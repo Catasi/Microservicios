@@ -232,8 +232,9 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
 
 // 🔹 Endpoint para traer info del profesor logueado
 app.get("/api/profesores/mis-datos", authMiddleware, async (req, res) => {
+  console.log("req.user:", req.user);  // <--- debug
   try {
-    const profesor = await Profesor.findOne({ usuario: req.user.usuario }).select("-passwordHash");
+    const profesor = await Profesor.findOne({ usuario: req.user.username }).select("-passwordHash");
     if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
     res.json(profesor);
   } catch (err) {
