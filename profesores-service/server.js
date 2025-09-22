@@ -228,6 +228,21 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
   }
 });
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// 🔹 Endpoint para traer info del profesor logueado
+app.get("/api/profesores/mis-datos", authMiddleware, async (req, res) => {
+  try {
+    const profesor = await Profesor.findOne({ usuario: req.user.usuario }).select("-passwordHash");
+    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
+    res.json(profesor);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 // Iniciar servidor
 app.listen(PORT, () => {
