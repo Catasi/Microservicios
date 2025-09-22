@@ -83,21 +83,23 @@ function authMiddleware(req, res, next) {
   if (!token) return res.status(401).json({ error: "Token requerido" });
 
   try {
+    // Decodifica el token usando tu JWT_SECRET local
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ⚡ Usa directamente los nombres de campos que tu compa pone
+    // 🔹 Coincide con los campos que genera tu login local
     req.user = {
-      id: decoded.userId,       // viene del servicio 3001
-      usuario: decoded.username,
+      id: decoded.id,        // el _id del profesor en tu DB
+      usuario: decoded.usuario,
       role: decoded.role
     };
 
+    console.log("Middleware - usuario logueado:", req.user);
     next();
   } catch (error) {
+    console.error("Error verificando token:", error.message);
     return res.status(401).json({ error: "Token inválido" });
   }
 }
-
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,9 +148,14 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
 // 📌 Ver mis grupos
 router.get("/mis-grupos", authMiddleware, async (req, res) => {
   try {
-    const grupos = await Grupo.find({ profesor: req.user.id })
+    // Buscar al profesor usando el usuario del token
+    const profesor = await Profesor.findOne({ usuario: req.user.usuario });
+    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
+
+    const grupos = await Grupo.find({ profesor: profesor._id })
       .populate("alumnos", "matricula nombre carrera")
       .populate("profesor", "numeroEmpleado usuario nombre puesto");
+
     res.json(grupos);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -160,11 +167,14 @@ router.get("/mis-grupos", authMiddleware, async (req, res) => {
 // 📌 Ver alumnos de un grupo
 router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
   try {
+    const profesor = await Profesor.findOne({ usuario: req.user.usuario });
+    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
+
     const grupo = await Grupo.findById(req.params.grupoId)
       .populate("alumnos", "matricula nombre carrera calificaciones");
     if (!grupo) return res.status(404).json({ error: "Grupo no encontrado" });
 
-    if (grupo.profesor.toString() !== req.user.id)
+    if (grupo.profesor.toString() !== profesor._id.toString())
       return res.status(403).json({ error: "No autorizado" });
 
     res.json(grupo.alumnos);
@@ -177,11 +187,14 @@ router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
 
 router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
   try {
+    const profesor = await Profesor.findOne({ usuario: req.user.usuario });
+    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
+
     const { matricula, materia, calificacion } = req.body;
 
     const grupo = await Grupo.findById(req.params.grupoId);
     if (!grupo) return res.status(404).json({ error: "Grupo no encontrado" });
-    if (grupo.profesor.toString() !== req.user.id)
+    if (grupo.profesor.toString() !== profesor._id.toString())
       return res.status(403).json({ error: "No autorizado" });
 
     const alumno = await Alumno.findOne({ matricula });
@@ -193,34 +206,34 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
 
     if (calIndex >= 0) {
       alumno.calificaciones[calIndex].calificacion = calificacion;
-      alumno.calificaciones[calIndex].profesor = req.user.id;
+      alumno.calificaciones[calIndex].profesor = profesor._id;
       alumno.calificaciones[calIndex].fecha = new Date();
     } else {
       alumno.calificaciones.push({
         grupo: req.params.grupoId,
         materia,
         calificacion,
-        profesor: req.user.id
+        profesor: profesor._id
       });
     }
 
     await alumno.save();
 
-    // 🔔 Notificar al servicio de tu compañera
+    // Notificar al servicio de compañera
     axios.post("http://localhost:4001/api/alumnos/calificaciones", {
       alumnoId: alumno._id.toString(),
       matricula: alumno.matricula,
-      grupo: grupo.nombre || grupo._id.toString(), // según lo que su DB use
+      grupo: grupo.nombre || grupo._id.toString(),
       materia,
       calificacion
     }).catch(err => console.error("Error notificando a compañera:", err.message));
 
     res.json({ mensaje: "✅ Calificación registrada/actualizada y notificada", alumno });
-
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
