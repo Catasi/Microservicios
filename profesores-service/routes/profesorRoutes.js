@@ -78,33 +78,30 @@ router.post("/login", async (req, res) => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // Middleware JWT
-function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization || req.headers.Authorization;
-  if (!authHeader) {
-    console.warn('authMiddleware: no Authorization header');
-    return res.status(401).json({ success: false, error: 'Token requerido' });
-  }
+async function authMiddleware(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ error: 'Token requerido' });
 
-  const token = authHeader.split(' ')[1] || authHeader;
-  console.log('authMiddleware: token recibido:', token);
+  const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('authMiddleware: token decodificado:', decoded);
+    // Verificar token con auth_service
+    const resp = await axios.post('http://localhost:3001/api/auth/verify', {}, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
+    // Guardar info del usuario en req.user
     req.user = {
-      id: decoded.userId || decoded.id || decoded._id,
-      usuario: decoded.username || decoded.usuario || decoded.email,
-      role: decoded.role || decoded.puesto
+      username: resp.data.username,
+      role: resp.data.role
     };
 
-    return next();
+    next();
   } catch (err) {
-    console.error('authMiddleware: JWT verify error ->', err.message);
-    return res.status(401).json({ success: false, error: 'Token inválido' });
+    console.error('Token inválido según auth_service', err.message);
+    return res.status(401).json({ error: 'Token inválido' });
   }
 }
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 

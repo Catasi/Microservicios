@@ -151,18 +151,17 @@
   // Cargar grupos
   async function cargarGrupos() {
   try {
+    const token = localStorage.getItem("token"); // lee token siempre
     const res = await fetch(`${API}/mis-grupos`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token  // <-- asegurarse de enviar el token
+        'Authorization': `Bearer ${token}`
       }
     });
 
-    console.log('cargarGrupos: status', res.status);
     if (!res.ok) {
-      const text = await res.text().catch(()=>null);
-      console.error('cargarGrupos: respuesta no OK', res.status, text);
+      console.error('cargarGrupos: respuesta no OK', res.status);
       return;
     }
 
@@ -174,6 +173,7 @@
     console.error('cargarGrupos error:', err);
   }
 }
+
     
 
   // Renderizar grupos
