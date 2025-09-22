@@ -168,7 +168,6 @@ router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // 📌 Subir o actualizar calificación y notificar al servicio de alumnos
-import axios from "axios";
 
 router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
   try {
