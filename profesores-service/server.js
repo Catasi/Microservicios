@@ -122,9 +122,10 @@ function authMiddleware(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // ⚡ Usa directamente los nombres de campos que tu compa pone
     req.user = {
-      id: decoded.id || decoded.userId,
-      usuario: decoded.usuario || decoded.username,
+      id: decoded.userId,       // viene del servicio 3001
+      usuario: decoded.username,
       role: decoded.role
     };
 
@@ -133,6 +134,7 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ error: "Token inválido" });
   }
 }
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
