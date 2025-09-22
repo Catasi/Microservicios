@@ -137,6 +137,26 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
     );
     if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
+     // 3️⃣ Notificar al servicio 
+    try {
+      await axios.post(
+        "http://localhost:3001/api/auth/change-password", // endpoint 
+        {
+          username: profesor.usuario,  // nombre de usuario del profesor
+          newPassword: password        // nueva contraseña en texto plano
+        },
+        {
+          headers: {
+            "x-service-token": process.env.SYNC_TOKEN_COMPANERO, // opcional, seguridad
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    } catch (err) {
+      console.error("Error notificando al servicio de compañera:", err.message);
+      // Puedes decidir si quieres revertir el cambio o solo avisar
+    }
+
     res.json({ mensaje: "Contraseña actualizada ✅" });
   } catch (error) {
     res.status(400).json({ error: error.message });
