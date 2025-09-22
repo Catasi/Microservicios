@@ -89,11 +89,30 @@
       window.location.href = "http://localhost:3001/login.html";
     }
 
-    // Mostrar datos del profesor
-    document.getElementById("profNum").value = profesor.numeroEmpleado || "";
-    document.getElementById("profNombre").value = profesor.nombre || "";
-    document.getElementById("profUsua").value = profesor.usuario || "";
-    document.getElementById("profPass").value = passwordPlano;
+    async function cargarInfoProfesor() {
+      try {
+        const res = await fetch(`${API}/mis-datos`, {
+          method: 'GET',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!res.ok) throw new Error('No se pudo cargar la información');
+
+        const data = await res.json();
+
+        // Llenar inputs
+        document.getElementById("profNum").value = data.numeroEmpleado || "";
+        document.getElementById("profUsua").value = data.usuario || "";
+        document.getElementById("profNombre").value = data.nombre || "";
+        document.getElementById("profPass").value = localStorage.getItem("password") || "";
+
+        // Guardar info en localStorage si quieres mantenerla
+        localStorage.setItem("profesor", JSON.stringify(data));
+      } catch (err) {
+        console.error("Error cargando info profesor:", err);
+        alert("Error cargando información del profesor");
+      }
+    }
 
     // Toggle contraseña
     function togglePass() {
@@ -295,12 +314,13 @@
       renderGrupos();
     }
 
-    
+
 
     // Inicializar carga de grupos
     cargarGrupos();
+    cargarInfoProfesor();
 
-    
+
   </script>
 </body>
 
