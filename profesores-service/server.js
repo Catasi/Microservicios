@@ -5,26 +5,22 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
-import profesorRoutes from "./routes/profesorRoutes.js";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
-import Profesor from "../models/Profesor.js";
-import Grupo from "../models/Grupo.js";
-import Alumno from "../models/Alumno.js";
+import Profesor from "./models/Profesor.js";
+import Grupo from "./models/Grupo.js";
+import Alumno from "./models/Alumno.js";
 
-import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
-
-
 
 // Configuración inicial
 dotenv.config();
 connectDB();
 
 const app = express();
-
 const PORT = process.env.PORT || 4003;
+
 // Necesario para __dirname con ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -32,9 +28,6 @@ const __dirname = path.dirname(__filename);
 // Middlewares
 app.use(cors());
 app.use(express.json());
-
-// Rutas API
-app.use("/api/profesores", profesorRoutes);
 
 // Archivos estáticos
 app.use(express.static(path.join(__dirname, "public")));
@@ -44,39 +37,18 @@ app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "public", "test-profesores.html"));
 });
 
-// Servidor
-const router = express.Router();
-
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor Profesores corriendo en http://localhost:${PORT}`);
-});
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//Revibe la creacion de profesor 
-router.post("/register", async (req, res) => {
+// Registro de profesor
+app.post("/api/profesores/register", async (req, res) => {
   try {
     const { numeroEmpleado, usuario, nombre, puesto, password } = req.body;
 
-    // Verificar duplicados
     const existing = await Profesor.findOne({ numeroEmpleado });
-    if (existing) {
-      return res.status(400).json({ error: "El profesor ya existe" });
-    }
+    if (existing) return res.status(400).json({ error: "El profesor ya existe" });
 
-    // Hashear password
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Crear profesor
-    const profesor = new Profesor({
-      numeroEmpleado,
-      usuario,
-      nombre,
-      puesto,
-      passwordHash,
-    });
-
+    const profesor = new Profesor({ numeroEmpleado, usuario, nombre, puesto, passwordHash });
     await profesor.save();
 
     res.status(201).json({ message: "Profesor creado en mi servicio", profesor });
@@ -86,9 +58,8 @@ router.post("/register", async (req, res) => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// 🔑 Login de profesor
-router.post("/login", async (req, res) => {
+// Login de profesor
+app.post("/api/profesores/login", async (req, res) => {
   try {
     const { usuario, password } = req.body;
     const profesor = await Profesor.findOne({ usuario });
@@ -103,7 +74,7 @@ router.post("/login", async (req, res) => {
       { expiresIn: "2h" }
     );
 
-    // 🔔 Notificar al servicio login
+    // Notificar al servicio login
     axios.post("http://localhost:3001/api/auth/notificar-login", {
       usuario: profesor.usuario,
       numeroEmpleado: profesor.numeroEmpleado
@@ -118,51 +89,44 @@ router.post("/login", async (req, res) => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ver mis grupos
+app.get("/api/profesores/mis-grupos", authMiddleware, async (req, res) => {
+  try {
+    const profesor = await Profesor.findOne({ usuario: req.user.username });
+    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
-router.get("/mis-grupos", authMiddleware, async (req, res) => {
-  const profesor = await Profesor.findOne({ usuario: req.user.username });
-  if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
+    const grupos = await Grupo.find({ profesor: profesor._id })
+      .populate("alumnos", "matricula nombre carrera")
+      .populate("profesor", "numeroEmpleado usuario nombre puesto");
 
-  const grupos = await Grupo.find({ profesor: profesor._id })
-    .populate("alumnos", "matricula nombre carrera")
-    .populate("profesor", "numeroEmpleado usuario nombre puesto");
-
-  res.json({ grupos });
+    res.json({ grupos });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// 📌 Actualizar contraseña
-router.put("/mi-password", authMiddleware, async (req, res) => {
+// Actualizar contraseña
+app.put("/api/profesores/mi-password", authMiddleware, async (req, res) => {
   try {
     const { password } = req.body;
     const passwordHash = await bcrypt.hash(password, 10);
 
-    const profesor = await Profesor.findByIdAndUpdate(
-      req.user.id,
-      { passwordHash },
-      { new: true }
-    );
+    const profesor = await Profesor.findByIdAndUpdate(req.user.id, { passwordHash }, { new: true });
     if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
-    // 3️⃣ Notificar al servicio 
     try {
-      await axios.post(
-        "http://localhost:3001/api/auth/change-password", // endpoint 
-        {
-          username: profesor.usuario,  // nombre de usuario del profesor
-          newPassword: password        // nueva contraseña en texto plano
-        },
-        {
-          headers: {
-            "x-service-token": process.env.SYNC_TOKEN_COMPANERO, // opcional, seguridad
-            "Content-Type": "application/json"
-          }
+      await axios.post("http://localhost:3001/api/auth/change-password", {
+        username: profesor.usuario,
+        newPassword: password
+      }, {
+        headers: {
+          "x-service-token": process.env.SYNC_TOKEN_COMPANERO,
+          "Content-Type": "application/json"
         }
-      );
+      });
     } catch (err) {
       console.error("Error notificando al servicio de compañera:", err.message);
-      // Puedes decidir si quieres revertir el cambio o solo avisar
     }
 
     res.json({ mensaje: "Contraseña actualizada ✅" });
@@ -172,30 +136,10 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
 });
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// 📌 Ver mis grupos
-router.get("/mis-grupos", authMiddleware, async (req, res) => {
+// Ver alumnos de un grupo
+app.get("/api/profesores/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
   try {
-    // Buscar al profesor usando el usuario del token
-    const profesor = await Profesor.findOne({ usuario: req.user.usuario });
-    if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
-
-    const grupos = await Grupo.find({ profesor: profesor._id })
-      .populate("alumnos", "matricula nombre carrera")
-      .populate("profesor", "numeroEmpleado usuario nombre puesto");
-
-    res.json(grupos);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// 📌 Ver alumnos de un grupo
-router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
-  try {
-    const profesor = await Profesor.findOne({ usuario: req.user.usuario });
+    const profesor = await Profesor.findOne({ usuario: req.user.username });
     if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
     const grupo = await Grupo.findById(req.params.grupoId)
@@ -211,11 +155,11 @@ router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
   }
 });
 
-// 📌 Subir o actualizar calificación y notificar al servicio de compañera
-
-router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Subir o actualizar calificación
+app.post("/api/profesores/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
   try {
-    const profesor = await Profesor.findOne({ usuario: req.user.usuario });
+    const profesor = await Profesor.findOne({ usuario: req.user.username });
     if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
     const { matricula, materia, calificacion } = req.body;
@@ -237,17 +181,11 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
       alumno.calificaciones[calIndex].profesor = profesor._id;
       alumno.calificaciones[calIndex].fecha = new Date();
     } else {
-      alumno.calificaciones.push({
-        grupo: req.params.grupoId,
-        materia,
-        calificacion,
-        profesor: profesor._id
-      });
+      alumno.calificaciones.push({ grupo: req.params.grupoId, materia, calificacion, profesor: profesor._id });
     }
 
     await alumno.save();
 
-    // Notificar al servicio de compañera
     axios.post("http://localhost:4001/api/alumnos/calificaciones", {
       alumnoId: alumno._id.toString(),
       matricula: alumno.matricula,
@@ -262,35 +200,22 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
   }
 });
 
-
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-
-// Recibir grupo desde el otro servicio
-router.post("/nuevo-grupo", async (req, res) => {
+// Recibir grupo desde otro servicio
+app.post("/api/profesores/nuevo-grupo", async (req, res) => {
   try {
     const { nombre, materia, carrera, profesor, alumnos } = req.body;
 
-    // Buscar profesor en TU base por número de empleado
     const profe = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
     if (!profe) return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
 
-    // Buscar alumnos en TU base y mapear a ObjectId
     const alumnosIds = [];
     for (let a of alumnos) {
       const alumno = await Alumno.findOne({ matricula: a.matricula });
       if (alumno) alumnosIds.push(alumno._id);
     }
 
-    // Crear grupo en TU servicio
-    const nuevoGrupo = new Grupo({
-      grupo: nombre,
-      materia,
-      carrera,
-      profesor: profe._id,
-      alumnos: alumnosIds
-    });
-
+    const nuevoGrupo = new Grupo({ grupo: nombre, materia, carrera, profesor: profe._id, alumnos: alumnosIds });
     await nuevoGrupo.save();
 
     res.status(201).json({ message: "Grupo creado en mi servicio", grupo: nuevoGrupo });
@@ -299,4 +224,8 @@ router.post("/nuevo-grupo", async (req, res) => {
   }
 });
 
-export default router;
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// Iniciar servidor
+app.listen(PORT, () => {
+  console.log(`🚀 Servidor Profesores corriendo en http://localhost:${PORT}`);
+});
