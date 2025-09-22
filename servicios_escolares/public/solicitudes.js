@@ -64,12 +64,14 @@ function showNotification(message, type = 'success') {
 // Variable para almacenar alumnos del grupo
 
 let groupStudents = [];
+let allProfesores = [];
 const API = "http://localhost:4005/api/SE";
 const apiAlumnos = "http://localhost:4001/api/alumnos";
-const apiProfesores = "http://localhost:4002/api/profesores";
+const apiProfesores = "http://localhost:4003/api/profesores";
 const apiRH = "http://localhost:3002/api/professors";
 const apiAuth = "http://localhost:3001/api/auth"
 const apiSE = "http://localhost:4005/api/SE";
+
 fetchProfessors();
 
 // Crear constraseña alumnos
@@ -102,7 +104,7 @@ async function addNewStudent() {
         body: JSON.stringify({ nombre, matricula, usuario, carrera, contrasenia })
     });
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
     if (data.success === true) {
         showNotification('Alumno agregado exitosamente');
         clearForm();
@@ -148,7 +150,7 @@ async function searchStudent() {
         body: JSON.stringify({ matricula })
     });
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
 
     if (data.success) {
         // Simulamos una búsqueda exitosa
@@ -184,7 +186,7 @@ async function modifyStudent() {
         body: JSON.stringify({ nombre, usuario, carrera })
     });
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
     if (data.success) {
         showNotification('Alumno modificado exitosamente');
         clearForm();
@@ -209,8 +211,9 @@ async function modifyStudent() {
 async function fetchProfessors() {
     const res = await fetch(`${API}/profesores`);
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
     if (data.success) {
+        allProfesores = data.profesores;
         const select = document.getElementById('profesorSelect');
         select.innerHTML = '<option value="">Seleccione un profesor</option>';
         data.profesores.forEach(prof => {
@@ -262,7 +265,7 @@ async function createGroup() {
         body: JSON.stringify({ nombre, carrera, materia, profesorId: profesor, alumnos })
     });
     const data = await res.json();
-    console.log(data);
+    // console.log(data);
     if (data.success) {
         showNotification('Grupo creado exitosamente');
         clearGroupForm();
@@ -271,20 +274,23 @@ async function createGroup() {
         showNotification('Error al crear grupo: ' + data.message, 'error');
     }
 
+    const profesorObj = allProfesores.find(prof => prof._id === profesor);
+    // console.log('profesorObj:', profesorObj);
+
     // Notificar nuevo grupo a ALUMNOS
-    // const rest = await fetch(`${apiAlumnos}/recibir-grupo`, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
-    // });
-    //     const dataA = await rest.json();
-    //     console.log('Respuesta del API alumnos:', dataA);
+    const rest = await fetch(`${apiAlumnos}/recibir-grupo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre, carrera, materia, profesor: profesorObj, alumnos })
+    });
+        const dataA = await rest.json();
+        console.log('Respuesta del API alumnos:', dataA);
 
     // Notificar nuevo grupo a PROFESORES
     const restProf = await fetch(`${apiProfesores}/nuevo-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, carrera, materia, profesor, alumnos })
+        body: JSON.stringify({ nombre, carrera, materia, profesor: profesorObj, alumnos })
     });
         const dataProf = await restProf.json();
         console.log('Respuesta del API profesores:', dataProf);

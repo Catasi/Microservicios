@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Alumno from "../models/Alumno.js";
 import Grupo from "../models/Grupo.js";
+import Profesor from "../models/Profesor.js";
 
 const router = express.Router();
 
@@ -183,11 +184,13 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
 // Recibir grupo desde SE para asignar alumnos
 router.post("/recibir-grupo", async (req, res) => {
   try {
-    const { nombre, materia, carrera, profesorNoEmpleado, alumnos } = req.body;
+    // const { nombre, materia, carrera, profesor, alumnos } = req.body;
+    // console.log('req.body:', req.body); // ← Para ver qué datos llegan
+    // console.log('profesorObj:', profesor);
 
     // Buscar profesor en la base por su número de empleado
-    const profesor = await Profesor.findOne({ numeroEmpleado: profesorNoEmpleado });
-    if (!profesor) {
+    const profesorobj = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
+    if (!profesorobj) {
       return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
     }
 
@@ -205,7 +208,7 @@ router.post("/recibir-grupo", async (req, res) => {
     //  Crear o actualizar grupo en este servicio
     const grupo = await Grupo.findOneAndUpdate(
       { nombre, materia, carrera },
-      { nombre, materia, carrera, profesor: profesor._id, alumnos: alumnoIds },
+      { nombre, materia, carrera, profesor: profesorobj._id, alumnos: alumnoIds },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     );
 
