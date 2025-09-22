@@ -38,12 +38,19 @@
                     // Redirigir según el rol
                     switch(data.role) {
                         case 'rh':
-                            window.location.href = 'rh-dashboard.html';
+                            window.location.href = 'rh-service/public/rh-dashboard.html';
                             break;
                         case 'profesor':
-                            window.location.href = 'profesor-dashboard.html';
+                            window.location.href = 'profesores-service/public/test-profesores.html';
+                            break;
+                        case 'alumno':
+                            window.location.href = 'alumno-service/public/alumno.html';
+                            break;
+                        case 'se':
+                            window.location.href = 'servicios_escolares/public/servicios-escolares.html';
                             break;
                         default:
+                            window.location.href = 'login.html';
                             alert('Rol no reconocido');
                     }
                 } else {
