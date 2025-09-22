@@ -42,6 +42,41 @@ app.get(/^\/(?!api).*/, (req, res) => {
 const router = express.Router();
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//Revibe la creacion de profesor 
+router.post("/register", async (req, res) => {
+  try {
+    const { numeroEmpleado, usuario, nombre, puesto, password } = req.body;
+
+    // Verificar duplicados
+    const existing = await Profesor.findOne({ numeroEmpleado });
+    if (existing) {
+      return res.status(400).json({ error: "El profesor ya existe" });
+    }
+
+    // Hashear password
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    // Crear profesor
+    const profesor = new Profesor({
+      numeroEmpleado,
+      usuario,
+      nombre,
+      puesto,
+      passwordHash,
+    });
+
+    await profesor.save();
+
+    res.status(201).json({ message: "Profesor creado en mi servicio", profesor });
+  } catch (err) {
+    res.status(500).json({ error: "Error al registrar profesor: " + err.message });
+  }
+});
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // 🔑 Login de profesor
 router.post("/login", async (req, res) => {
   try {
@@ -72,6 +107,8 @@ router.post("/login", async (req, res) => {
   }
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // Middleware JWT
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
@@ -84,6 +121,8 @@ function authMiddleware(req, res, next) {
     return res.status(401).json({ error: "Token inválido" });
   }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // 📌 Actualizar contraseña
 router.put("/mi-password", authMiddleware, async (req, res) => {
@@ -104,6 +143,8 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
   }
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // 📌 Ver mis grupos
 router.get("/mis-grupos", authMiddleware, async (req, res) => {
   try {
@@ -115,6 +156,8 @@ router.get("/mis-grupos", authMiddleware, async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
 
 // 📌 Ver alumnos de un grupo
 router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
@@ -132,7 +175,10 @@ router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
   }
 });
 
-// 📌 Subir o actualizar calificación y notificar al servicio de compañera
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// 📌 Subir o actualizar calificación y notificar al servicio de alumnos
 import axios from "axios";
 
 router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
@@ -182,5 +228,40 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
   }
 });
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Recibir grupo desde el otro servicio
+router.post("/nuevo-grupo", async (req, res) => {
+    try {
+        const { nombre, materia, carrera, profesor, alumnos } = req.body;
+
+        // Buscar profesor en TU base por número de empleado
+        const profe = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
+        if (!profe) return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
+
+        // Buscar alumnos en TU base y mapear a ObjectId
+        const alumnosIds = [];
+        for (let a of alumnos) {
+            const alumno = await Alumno.findOne({ matricula: a.matricula });
+            if (alumno) alumnosIds.push(alumno._id);
+        }
+
+        // Crear grupo en TU servicio
+        const nuevoGrupo = new Grupo({
+            grupo: nombre,
+            materia,
+            carrera,
+            profesor: profe._id,
+            alumnos: alumnosIds
+        });
+
+        await nuevoGrupo.save();
+
+        res.status(201).json({ message: "Grupo creado en mi servicio", grupo: nuevoGrupo });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 export default router;
