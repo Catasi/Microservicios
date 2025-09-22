@@ -317,7 +317,7 @@ router.post("/login", async (req, res) => {
     );
 
     // 🔔 Notificar al servicio login
-    axios.post("http://localhost:PUERTO_DEL_SERVICIO_COMPANERO/api/auth/notificar-login", {
+    axios.post("http://localhost:3001/api/auth/notificar-login", {
       usuario: profesor.usuario,
       numeroEmpleado: profesor.numeroEmpleado
     }, {
@@ -390,7 +390,9 @@ router.get("/mis-grupos/:grupoId/alumnos", authMiddleware, async (req, res) => {
   }
 });
 
-// 📌 Subir o actualizar calificación
+// 📌 Subir o actualizar calificación y notificar al servicio de compañera
+import axios from "axios";
+
 router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, res) => {
   try {
     const { matricula, materia, calificacion } = req.body;
@@ -421,11 +423,22 @@ router.post("/mis-grupos/:grupoId/calificaciones", authMiddleware, async (req, r
     }
 
     await alumno.save();
-    res.json({ mensaje: "✅ Calificación registrada/actualizada", alumno });
+
+    // 🔔 Notificar al servicio de tu compañera
+    axios.post("http://localhost:4001/api/alumnos/calificaciones", {
+      alumnoId: alumno._id.toString(),
+      matricula: alumno.matricula,
+      grupo: grupo.nombre || grupo._id.toString(), // según lo que su DB use
+      materia,
+      calificacion
+    }).catch(err => console.error("Error notificando a compañera:", err.message));
+
+    res.json({ mensaje: "✅ Calificación registrada/actualizada y notificada", alumno });
 
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
 });
+
 
 export default router;
