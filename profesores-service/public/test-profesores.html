@@ -64,10 +64,12 @@ let profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
 let passwordPlano = localStorage.getItem("password") || "";
 let grupos = [];
 
-if (!token || !profesor.numeroEmpleado) {
-  alert("No estás logueado");
-  window.location.href = "login.html";
+if (!token) {
+  alert("No hay token. Redirigiendo al login...");
+  window.location.href = "/login.html";
 }
+
+verifyToken();
 
 // Mostrar datos del profesor
 document.getElementById("profNum").value = profesor.numeroEmpleado || "";
@@ -98,10 +100,34 @@ async function actualizarPassword() {
 
 // Cerrar sesión
 function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("profesor");
-  localStorage.removeItem("password");
-  window.location.href = "login.html";
+  localStorage.removeItem('token');
+  localStorage.removeItem('userRole');
+  window.location.replace('/login.html');
+}
+
+async function verifyToken() {
+  try {
+    console.log('🔍 Verificando token...');
+    const response = await fetch('http://localhost:3001/api/auth/verify', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Token inválido');
+  }
+
+  const userData = await response.json();
+  console.log('✅ Token válido para:', userData.username);
+
+  } catch (error) {
+    console.error('❌ Token inválido:', error);
+    alert('Sesión expirada. Por favor inicia sesión again.');
+    logout();
+  }
 }
 
 // Cargar grupos

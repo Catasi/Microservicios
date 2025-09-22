@@ -167,5 +167,62 @@
         </section>
     </main>
     <script src="solicitudes.js"></script>
+    <script>
+        const token = localStorage.getItem('token');
+        console.log('Token en localStorage:', token);
+        
+        if (!token) {
+            alert('No hay token. Redirigiendo al login...');
+            window.location.replace('/login.html');
+        }
+
+        // Verificar token al cargar la página
+        verifyToken();
+
+        async function verifyToken() {
+            try {
+                console.log('🔍 Verificando token...');
+                const response = await fetch('http://localhost:3001/api/auth/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Token inválido');
+                }
+
+                const userData = await response.json();
+                console.log('✅ Token válido para:', userData.username);
+                
+            } catch (error) {
+                console.error('❌ Token inválido:', error);
+                alert('Sesión expirada. Por favor inicia sesión again.');
+                logout();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userRole');
+            window.location.replace('/login.html');
+        }
+
+        // Debug: Mostrar info del token
+        if (token) {
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                console.log('🔐 Token info:', {
+                    username: payload.username,
+                    role: payload.role,
+                    exp: new Date(payload.exp * 1000)
+                });
+            } catch (e) {
+                console.log('❌ No se pudo decodificar el token');
+            }
+        }
+    </script>
 </body>
 </html>

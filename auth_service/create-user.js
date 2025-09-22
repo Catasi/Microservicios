@@ -5,6 +5,9 @@ import User from './models/User.js';
 
 async function createUser() {
     try {
+        const name = 'adminalumno';
+        const constrasenia = 'alumno123';
+        const rol = 'alumno';
         console.log('🔗 Conectando a la base de datos...');
         
         // Conectar a la base de datos
@@ -16,25 +19,25 @@ async function createUser() {
         console.log('✅ Conectado a MongoDB');
 
         // Verificar si el usuario ya existe
-        const existingUser = await User.findOne({ username: 'adminrh' });
+        const existingUser = await User.findOne({ username: name });
         if (existingUser) {
-            console.log('⚠️  El usuario adminrh ya existe');
+            console.log('⚠️  El usuario' + name + 'ya existe');
             mongoose.connection.close();
             return;
         }
 
         // Crear usuario de RH
         const user = new User({
-            username: 'adminrh',
-            password: 'password123', // Se encriptará automáticamente por el pre-save hook
-            role: 'rh'
+            username: name,
+            password: constrasenia, // Se encriptará automáticamente por el pre-save hook
+            role: rol
         });
 
         await user.save();
         console.log('✅ Usuario creado exitosamente:');
-        console.log('📋 Usuario: adminrh');
-        console.log('🔑 Contraseña: password123');
-        console.log('🎯 Rol: rh');
+        console.log('📋 Usuario:' + name);
+        console.log('🔑 Contraseña:' +constrasenia);
+        console.log('🎯 Rol:' + rol);
         
         mongoose.connection.close();
         console.log('🔒 Conexión cerrada');

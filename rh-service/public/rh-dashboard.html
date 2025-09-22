@@ -38,7 +38,7 @@
         
         if (!token) {
             alert('No hay token. Redirigiendo al login...');
-            window.location.href = 'login.html';
+            window.location.replace('/login.html');
         }
 
         // Verificar token al cargar la página
@@ -151,7 +151,7 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('userRole');
-            window.location.href = 'login.html';
+            window.location.replace('/login.html');
         }
 
         // Debug: Mostrar info del token
