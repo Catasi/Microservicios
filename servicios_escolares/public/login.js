@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
         
             if (data.success) {
-                const userData = data.servicios_escolares;
+                const userData = data.data;
             
                 console.log('✅ Datos del usuario:', userData);
                 document.getElementById('usuario').textContent = userData.nombre;
