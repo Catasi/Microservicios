@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <title>Panel Profesor</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <header>
     <div class="header-content">
@@ -13,8 +15,12 @@
         <div class="user-info">
           <div class="user-avatar">PR</div>
           <div class="user-details">
-            <div><p id="usuario">Cargando...</p></div>
-            <div><p id="puesto">Profesor</p></div>
+            <div>
+              <p id="usuario">Cargando...</p>
+            </div>
+            <div>
+              <p id="puesto">Profesor</p>
+            </div>
           </div>
         </div>
         <button class="logout-btn" onclick="logout()">
@@ -68,177 +74,177 @@
     </div>
   </main>
 
-<script>
-  const API = "http://localhost:4003/api/profesores";
+  <script>
+    const API = "http://localhost:4003/api/profesores";
 
-  // Tomar token y profesor del localStorage
-  let token = localStorage.getItem("token");
-  let profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
-  let passwordPlano = localStorage.getItem("password") || "";
-  let grupos = [];
+    // Tomar token y profesor del localStorage
+    let token = localStorage.getItem("token");
+    let profesor = JSON.parse(localStorage.getItem("profesor") || "{}");
+    let passwordPlano = localStorage.getItem("password") || "";
+    let grupos = [];
 
-  // Si no hay token, redirigir al login
-  if (!token) {
-    alert("No hay token. Redirigiendo al login...");
-    window.location.href = "http://localhost:3001/login.html";
-  }
-
-  // Mostrar datos del profesor
-  document.getElementById("profNum").value = profesor.numeroEmpleado || "";
-  document.getElementById("profNombre").value = profesor.nombre || "";
-  document.getElementById("profUsua").value = profesor.usuario || "";
-  document.getElementById("profPass").value = passwordPlano;
-
-  // Toggle contraseña
-  function togglePass() {
-    const pass = document.getElementById("profPass");
-    pass.type = pass.type === "password" ? "text" : "password";
-  }
-
-  // Logout
-  function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('profesor');
-    localStorage.removeItem('password');
-    window.location.href = "c:/Microservicios/login.html";
-  }
-
-  // Verificar token con el auth service
-  async function verifyToken() {
-    try {
-      const response = await fetch('http://localhost:3001/api/auth/verify', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) throw new Error('Token inválido');
-
-      const userData = await response.json();
-      console.log('✅ Token válido para:', userData.username);
-
-      // Actualizar token si auth service devuelve uno nuevo
-      if (userData.token) {
-        token = userData.token;
-        localStorage.setItem("token", token);
-      }
-
-    } catch (error) {
-      alert('Sesión expirada. Por favor inicia sesión nuevamente.');
-      logout();
-    }
-  }
-
-  verifyToken();
-
-  // Actualizar contraseña
-  async function actualizarPassword() {
-    const password = document.getElementById("profPass").value.trim();
-    if (!password) { alert("⚠️ La contraseña no puede estar vacía"); return; }
-
-    const res = await fetch(`${API}/mi-password`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ password })
-    });
-    const data = await res.json();
-    document.getElementById("resPass").textContent = JSON.stringify(data, null, 2);
-    if (data.mensaje) localStorage.setItem("password", password);
-  }
-
-  // Cargar grupos
-  async function cargarGrupos() {
-  try {
-    const token = localStorage.getItem("token"); // lee token siempre
-    const res = await fetch(`${API}/mis-grupos`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    if (!res.ok) {
-      console.error('cargarGrupos: respuesta no OK', res.status);
-      return;
+    // Si no hay token, redirigir al login
+    if (!token) {
+      alert("No hay token. Redirigiendo al login...");
+      window.location.href = "http://localhost:3001/login.html";
     }
 
-    const data = await res.json();
-    grupos = data.grupos || [];
-    renderGrupos();
-    llenarSelect();
-  } catch (err) {
-    console.error('cargarGrupos error:', err);
-  }
-}
+    // Mostrar datos del profesor
+    document.getElementById("profNum").value = profesor.numeroEmpleado || "";
+    document.getElementById("profNombre").value = profesor.nombre || "";
+    document.getElementById("profUsua").value = profesor.usuario || "";
+    document.getElementById("profPass").value = passwordPlano;
 
-    
+    // Toggle contraseña
+    function togglePass() {
+      const pass = document.getElementById("profPass");
+      pass.type = pass.type === "password" ? "text" : "password";
+    }
 
-  // Renderizar grupos
-  function renderGrupos(lista = grupos, searchTerm = "") {
-    const ul = document.getElementById("grupoLista");
-    ul.innerHTML = "";
+    // Logout
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('profesor');
+      localStorage.removeItem('password');
+      window.location.href = "c:/Microservicios/login.html";
+    }
 
-    lista.forEach(g => {
-      const li = document.createElement("li");
-      li.textContent = `${g.materia} (${g.grupo})`;
+    // Verificar token con el auth service
+    async function verifyToken() {
+      try {
+        const response = await fetch('http://localhost:3001/api/auth/verify', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-      const container = document.createElement("div");
-      container.className = "alumnos-container";
-      container.style.display = "none";
-      container.id = `alumnos-${g._id}`;
-      li.appendChild(container);
+        if (!response.ok) throw new Error('Token inválido');
 
-      li.addEventListener("click", async (e) => {
-        if (e.target.tagName.toLowerCase() === "input" || e.target.tagName.toLowerCase() === "button") return;
-        const div = document.getElementById(`alumnos-${g._id}`);
-        if (div.style.display === "none") {
-          div.style.display = "block";
-          await mostrarAlumnos(g._id, g.materia, g.grupo, div, searchTerm);
-        } else {
-          div.style.display = "none";
+        const userData = await response.json();
+        console.log('✅ Token válido para:', userData.username);
+
+        // Actualizar token si auth service devuelve uno nuevo
+        if (userData.token) {
+          token = userData.token;
+          localStorage.setItem("token", token);
         }
+
+      } catch (error) {
+        alert('Sesión expirada. Por favor inicia sesión nuevamente.');
+        logout();
+      }
+    }
+
+    verifyToken();
+
+    // Actualizar contraseña
+    async function actualizarPassword() {
+      const password = document.getElementById("profPass").value.trim();
+      if (!password) { alert("⚠️ La contraseña no puede estar vacía"); return; }
+
+      const res = await fetch(`${API}/mi-password`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ password })
       });
+      const data = await res.json();
+      document.getElementById("resPass").textContent = JSON.stringify(data, null, 2);
+      if (data.mensaje) localStorage.setItem("password", password);
+    }
 
-      ul.appendChild(li);
-    });
-  }
+    // Cargar grupos
+    async function cargarGrupos() {
+      try {
+        const token = localStorage.getItem("token"); // lee token siempre
+        const res = await fetch(`${API}/mis-grupos`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-  function llenarSelect() {
-    const sel = document.getElementById("grupoSelect");
-    sel.innerHTML = `<option value="">-- Seleccionar grupo --</option>`;
-    grupos.forEach(g => {
-      const opt = document.createElement("option");
-      opt.value = g._id;
-      opt.textContent = `${g.materia} (${g.grupo})`;
-      sel.appendChild(opt);
-    });
-  }
+        if (!res.ok) {
+          console.error('cargarGrupos: respuesta no OK', res.status);
+          return;
+        }
 
-  async function mostrarAlumnos(grupoId, materia, grupoNombre, container, searchTerm = "") {
-    const res = await fetch(`${API}/mis-grupos/${grupoId}/alumnos`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    const alumnos = await res.json();
+        const data = await res.json();
+        grupos = data.grupos || [];
+        renderGrupos();
+        llenarSelect();
+      } catch (err) {
+        console.error('cargarGrupos error:', err);
+      }
+    }
 
-    let html = `<table>
+
+
+    // Renderizar grupos
+    function renderGrupos(lista = grupos, searchTerm = "") {
+      const ul = document.getElementById("grupoLista");
+      ul.innerHTML = "";
+
+      lista.forEach(g => {
+        const li = document.createElement("li");
+        li.textContent = `${g.materia} (${g.grupo})`;
+
+        const container = document.createElement("div");
+        container.className = "alumnos-container";
+        container.style.display = "none";
+        container.id = `alumnos-${g._id}`;
+        li.appendChild(container);
+
+        li.addEventListener("click", async (e) => {
+          if (e.target.tagName.toLowerCase() === "input" || e.target.tagName.toLowerCase() === "button") return;
+          const div = document.getElementById(`alumnos-${g._id}`);
+          if (div.style.display === "none") {
+            div.style.display = "block";
+            await mostrarAlumnos(g._id, g.materia, g.grupo, div, searchTerm);
+          } else {
+            div.style.display = "none";
+          }
+        });
+
+        ul.appendChild(li);
+      });
+    }
+
+    function llenarSelect() {
+      const sel = document.getElementById("grupoSelect");
+      sel.innerHTML = `<option value="">-- Seleccionar grupo --</option>`;
+      grupos.forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g._id;
+        opt.textContent = `${g.materia} (${g.grupo})`;
+        sel.appendChild(opt);
+      });
+    }
+
+    async function mostrarAlumnos(grupoId, materia, grupoNombre, container, searchTerm = "") {
+      const res = await fetch(`${API}/mis-grupos/${grupoId}/alumnos`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const alumnos = await res.json();
+
+      let html = `<table>
       <tr><th>Matrícula</th><th>Nombre</th><th>Materia</th><th>Grupo</th><th>Calificación</th></tr>`;
 
-    alumnos.forEach(a => {
-      const calificacionesDelGrupo = (a.calificaciones || []).filter(c =>
-        String(c.grupo?._id || c.grupo) === String(grupoId) && c.materia === materia
-      );
-      const calObj = calificacionesDelGrupo.sort((x, y) => new Date(y.fecha) - new Date(x.fecha))[0] || {};
+      alumnos.forEach(a => {
+        const calificacionesDelGrupo = (a.calificaciones || []).filter(c =>
+          String(c.grupo?._id || c.grupo) === String(grupoId) && c.materia === materia
+        );
+        const calObj = calificacionesDelGrupo.sort((x, y) => new Date(y.fecha) - new Date(x.fecha))[0] || {};
 
-      const match = searchTerm === "" ||
-                    a.nombre.toLowerCase().includes(searchTerm) ||
-                    a.matricula.includes(searchTerm) ||
-                    `${materia} (${grupoNombre})`.toLowerCase().includes(searchTerm);
-      if (!match) return;
+        const match = searchTerm === "" ||
+          a.nombre.toLowerCase().includes(searchTerm) ||
+          a.matricula.includes(searchTerm) ||
+          `${materia} (${grupoNombre})`.toLowerCase().includes(searchTerm);
+        if (!match) return;
 
-      html += `<tr>
+        html += `<tr>
         <td>${a.matricula}</td>
         <td>${a.nombre}</td>
         <td>${materia}</td>
@@ -248,49 +254,54 @@
           <button class="save-btn" onclick="guardarCal('${grupoId}','${a.matricula}','${materia}','${container.id}')">💾</button>
         </td>
       </tr>`;
-    });
+      });
 
-    container.innerHTML = html;
-  }
+      container.innerHTML = html;
+    }
 
-  async function guardarCal(grupoId, matricula, materia, containerId) {
-    const calInput = document.getElementById(`cal-${matricula}`);
-    const cal = calInput.value.trim();
-    if (cal === "") { alert("⚠️ La calificación no puede estar vacía"); return; }
-    const numCal = Number(cal);
-    if (isNaN(numCal) || numCal < 0) { alert("⚠️ Ingresa un número válido"); return; }
+    async function guardarCal(grupoId, matricula, materia, containerId) {
+      const calInput = document.getElementById(`cal-${matricula}`);
+      const cal = calInput.value.trim();
+      if (cal === "") { alert("⚠️ La calificación no puede estar vacía"); return; }
+      const numCal = Number(cal);
+      if (isNaN(numCal) || numCal < 0) { alert("⚠️ Ingresa un número válido"); return; }
 
-    const res = await fetch(`${API}/mis-grupos/${grupoId}/calificaciones`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ matricula, materia, calificacion: numCal })
-    });
+      const res = await fetch(`${API}/mis-grupos/${grupoId}/calificaciones`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ matricula, materia, calificacion: numCal })
+      });
 
-    alert("Guardado: " + JSON.stringify(await res.json()));
-    const container = document.getElementById(containerId);
-    mostrarAlumnos(grupoId, materia, grupos.find(g => g._id === grupoId)?.grupo, container);
-  }
+      alert("Guardado: " + JSON.stringify(await res.json()));
+      const container = document.getElementById(containerId);
+      mostrarAlumnos(grupoId, materia, grupos.find(g => g._id === grupoId)?.grupo, container);
+    }
 
-  // Filtrar lista y select
-  function filtrar() {
-    const q = document.getElementById("searchInput").value.toLowerCase();
-    renderGrupos(grupos, q);
-  }
+    // Filtrar lista y select
+    function filtrar() {
+      const q = document.getElementById("searchInput").value.toLowerCase();
+      renderGrupos(grupos, q);
+    }
 
-  function filtrarSelect() {
-    const id = document.getElementById("grupoSelect").value;
-    if (!id) renderGrupos();
-    else renderGrupos(grupos.filter(g => g._id === id));
-  }
+    function filtrarSelect() {
+      const id = document.getElementById("grupoSelect").value;
+      if (!id) renderGrupos();
+      else renderGrupos(grupos.filter(g => g._id === id));
+    }
 
-  function limpiarBusqueda() {
-    document.getElementById("searchInput").value = "";
-    document.getElementById("grupoSelect").value = "";
-    renderGrupos();
-  }
+    function limpiarBusqueda() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("grupoSelect").value = "";
+      renderGrupos();
+    }
 
-  // Inicializar carga de grupos
-  cargarGrupos();
-</script>
+    
+
+    // Inicializar carga de grupos
+    cargarGrupos();
+
+    
+  </script>
 </body>
+
 </html>

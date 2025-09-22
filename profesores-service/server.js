@@ -6,11 +6,16 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import profesorRoutes from "./routes/profesorRoutes.js";
+import { authMiddleware } from "./middlewares/authMiddleware.js";
+import Profesor from "../models/Profesor.js";
+import Grupo from "../models/Grupo.js";
+import Alumno from "../models/Alumno.js";
 
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+
 
 
 // Configuración inicial
@@ -114,30 +119,16 @@ router.post("/login", async (req, res) => {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function authMiddleware(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: 'Token requerido' });
+router.get("/mis-grupos", authMiddleware, async (req, res) => {
+  const profesor = await Profesor.findOne({ usuario: req.user.username });
+  if (!profesor) return res.status(404).json({ error: "Profesor no encontrado" });
 
-  const token = authHeader.split(' ')[1];
+  const grupos = await Grupo.find({ profesor: profesor._id })
+    .populate("alumnos", "matricula nombre carrera")
+    .populate("profesor", "numeroEmpleado usuario nombre puesto");
 
-  try {
-    // Verificar token con auth_service
-    const resp = await axios.post('http://localhost:3001/api/auth/verify', {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    // Guardar info del usuario en req.user
-    req.user = {
-      username: resp.data.username,
-      role: resp.data.role
-    };
-
-    next();
-  } catch (err) {
-    console.error('Token inválido según auth_service', err.message);
-    return res.status(401).json({ error: 'Token inválido' });
-  }
-}
+  res.json({ grupos });
+});
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
