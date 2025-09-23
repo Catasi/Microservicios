@@ -208,25 +208,45 @@ app.post("/api/profesores/mis-grupos/:grupoId/calificaciones", authMiddleware, a
 // Recibir grupo desde otro servicio
 app.post("/api/profesores/nuevo-grupo", async (req, res) => {
   try {
-    const { nombre, materia, carrera, profesor, alumnos } = req.body;
+    const { nombre, materia, carrera, profe, alumnos } = req.body;
 
-    // 1️⃣ Buscar profesor por no_empleado
-    const profe = await Profesor.findOne({ no_empleado: String(profesor.no_empleado) });
-    if (!profe) return res.status(404).json({ error: "Profesor no encontrado" });
-
-    // 2️⃣ Mapear alumnos por matricula y obtener sus IDs
-    const alumnosIds = [];
-    for (let a of alumnos) {
-      const alumno = await Alumno.findOne({ matricula: String(a.matricula) });
-      if (alumno) alumnosIds.push(alumno._id);
+    // Buscar o crear profesor
+    let profesorDb = await Profesor.findOne({ numeroEmpleado: String(profe.no_empleado) });
+    if (!profesorDb) {
+      profesorDb = new Profesor({
+        numeroEmpleado: String(profe.no_empleado),
+        nombre: profe.nombre || "Desconocido",
+        usuario: profe.usuario || `user_${Date.now()}`,
+        puesto: "Profesor",
+        passwordHash: "defaultHash" // si tu servicio requiere password
+      });
+      await profesorDb.save();
     }
 
-    // 3️⃣ Crear grupo solo con lo que tú ocupas
+    // Mapear alumnos por matrícula a ObjectId
+    const alumnosIds = await Promise.all(
+      alumnos.map(async (a) => {
+        let alumnoDb = await Alumno.findOne({ matricula: String(a.matricula) });
+        if (!alumnoDb) {
+          // Crear alumno si no existe
+          alumnoDb = new Alumno({
+            matricula: String(a.matricula),
+            nombre: a.nombre || "Desconocido",
+            carrera: carrera, // puedes usar la del grupo
+            calificaciones: []
+          });
+          await alumnoDb.save();
+        }
+        return alumnoDb._id;
+      })
+    );
+
+    // Crear grupo con referencias correctas
     const nuevoGrupo = new Grupo({
       grupo: nombre,
       materia,
       carrera,
-      profesor: profe._id,
+      profesor: profesorDb._id,
       alumnos: alumnosIds
     });
 
