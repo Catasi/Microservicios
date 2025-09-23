@@ -279,4 +279,41 @@ router.post("/recibir-calificacion", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+//rouer.get inicio
+  router.get('/inicio-sesion', async (req, res) => {
+    try {
+        const { usuario } = req.query;
+        if (!usuario) {
+            return res.status(400).json({
+                success: false,
+                message: 'El campo usuario es requerido'
+            });
+        }
+
+        const alumno = await Alumno.findOne({ usuario: usuario });
+        
+        if (!alumno) {
+            return res.status(404).json({
+                success: false,
+                message: 'Usuario no encontrado'
+            });
+        }
+        res.json({
+            success: true,
+            data: {
+                nombre: alumno.nombre,
+                matricula: alumno.matricula,
+                usuario: alumno.usuario,
+                carrera: alumno.carrera
+            }
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Error en el servidor',
+            error: error.message });
+    }
+});
+
 export default router;
