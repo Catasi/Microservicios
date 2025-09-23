@@ -15,6 +15,10 @@
                 <div id="alumnoNombre" style="font-weight: 500;">Alumno Nombre</div>
                 <div style="font-size: 0.9rem; opacity: 0.8;">Estudiante</div>
             </div>
+            <!-- 🔴 Botón de Cerrar Sesión -->
+            <button id="logoutBtn" style="margin-left: 1rem; padding: 6px 12px; background: #e74c3c; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Cerrar Sesión
+            </button>
         </div>
     </div>
 </header>
@@ -78,7 +82,7 @@
     </section>
 </main>
 
-<script src="navegacion.js"></script>
+
 <script>
         const token = localStorage.getItem('token');
         console.log('Token en localStorage:', token);
@@ -122,6 +126,9 @@
             window.location.replace('/login.html');
         }
 
+        // Conectar botón con logout
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
         // Debug: Mostrar info del token
         if (token) {
             try {
@@ -136,5 +143,7 @@
             }
         }
     </script>
+    <script src="navegacion.js"></script>
+    <script src="login.js"></script>
 </body>
 </html>
