@@ -210,23 +210,34 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
   try {
     const { nombre, materia, carrera, profesor, alumnos } = req.body;
 
-    const profe = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
-    if (!profe) return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
+    // 1️⃣ Buscar profesor por no_empleado
+    const profe = await Profesor.findOne({ no_empleado: String(profesor.no_empleado) });
+    if (!profe) return res.status(404).json({ error: "Profesor no encontrado" });
 
+    // 2️⃣ Mapear alumnos por matricula y obtener sus IDs
     const alumnosIds = [];
     for (let a of alumnos) {
-      const alumno = await Alumno.findOne({ matricula: a.matricula });
+      const alumno = await Alumno.findOne({ matricula: String(a.matricula) });
       if (alumno) alumnosIds.push(alumno._id);
     }
 
-    const nuevoGrupo = new Grupo({ grupo: nombre, materia, carrera, profesor: profe._id, alumnos: alumnosIds });
+    // 3️⃣ Crear grupo solo con lo que tú ocupas
+    const nuevoGrupo = new Grupo({
+      grupo: nombre,
+      materia,
+      carrera,
+      profesor: profe._id,
+      alumnos: alumnosIds
+    });
+
     await nuevoGrupo.save();
 
-    res.status(201).json({ message: "Grupo creado en mi servicio", grupo: nuevoGrupo });
+    res.status(201).json({ message: "Grupo creado correctamente", grupo: nuevoGrupo });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
