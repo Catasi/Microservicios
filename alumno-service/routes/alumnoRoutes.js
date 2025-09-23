@@ -184,30 +184,43 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
 // Recibir grupo desde SE para asignar alumnos
 router.post("/recibir-grupo", async (req, res) => {
   try {
-    const { nombre, materia, carrera, profesor, alumnos } = req.body;
-    // console.log('req.body:', req.body); // ← Para ver qué datos llegan
-    // console.log('profesorObj:', profesor);
-
-    // Buscar profesor en la base por su número de empleado
-    const profesorobj = await Profesor.findOne({ numeroEmpleado: profesor.no_empleado });
-    if (!profesorobj) {
-      return res.status(404).json({ error: "Profesor no encontrado en mi servicio" });
-    }
-
-    // Buscar alumnos en la DB y mapearlos a sus ObjectId
-    // const alumnoIds = [];
-    // for (let a of alumnos) {
-    //   const alumno = await Alumno.findOne({ matricula: a.matricula });
-    //   if (alumno) alumnoIds.push(alumno._id);
-    // }
-    //  Crear o actualizar grupo en este servicio
-    const grupo = new Grupo({ nombre, carrera, profesor_nombre: profesorobj.nombre, alumnos });
-    await grupo.save();
-
-    res.status(201).json({ message: "✅ Grupo recibido y registrado para alumnos", grupo });
-  } catch (err) {
-    res.status(500).json({ error: "Error al registrar grupo: " + err.message });
-  }
+      const { nombre, carrera, materia, profesorId, alumnos } = req.body;
+        
+          // Buscar el profesor completo por ID
+          const profesor = await Profesor.findById(profesorId);
+          
+          if (!profesor) {
+              return res.status(404).json({ 
+                  message: 'Profesor no encontrado' 
+              });
+          }
+  
+          //  Crear grupo con estructura correcta 
+          const nuevoGrupo = new Grupo({ 
+              nombre, 
+              carrera,
+              materia,
+              profe: {
+                  nombre: profesor.nombre,
+                  no_empleado: profesor.no_empleado,
+                  usuario: profesor.usuario
+              },
+              alumnos: alumnos || [] 
+          });
+          
+          await nuevoGrupo.save();
+          res.status(201).json({ 
+              success: true,
+              message: 'Grupo creado exitosamente', 
+              grupo: nuevoGrupo 
+          });
+      } catch (error) {
+          res.status(500).json({ 
+              success: false,
+              message: 'Error al crear grupo', 
+              error: error.message 
+          });
+      }
 });
 
 
