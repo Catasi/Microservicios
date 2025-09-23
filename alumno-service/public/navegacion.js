@@ -1,4 +1,4 @@
-const alumnoId = "ID_DEL_ALUMNO"; // reemplazar con el _id real del alumno logueado que se genero en SE
+//const alumnoId = "ID_DEL_ALUMNO"; // reemplazar con el _id real del alumno logueado que se genero en SE
 
 // Navegación entre secciones
 function showSection(sectionId, event) {
@@ -15,7 +15,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         const res = await fetch(`/api/alumno/${alumnoId}`);
         const alumno = await res.json();
 
-        document.getElementById('alumnoNombre').textContent = alumno.nombre;
         document.getElementById('idNombre').textContent = alumno.nombre;
         document.getElementById('idMatricula').textContent = alumno.matricula;
         document.getElementById('idUsuario').textContent = alumno.usuario;

@@ -14,17 +14,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const usuario = localStorage.getItem('userName') || localStorage.getItem('username');
     if (usuario) loadAlumnoInfo(usuario);
 
+
+
     // Cargar info del alumno desde el servicio
     async function loadAlumnoInfo(usuario) {
         try {
-            const response = await fetch(`http://localhost:4005/api/alumno/inicio-sesion?usuario=${usuario}`);
+            const response = await fetch(`http://localhost:4001/api/alumnos/inicio-sesion?usuario=${usuario}`);
             const data = await response.json();
 
             if (data.success) {
                 const alumno = data.data;
                 console.log('✅ Datos del alumno:', alumno);
-
-                document.getElementById('alumnoNombre').textContent = alumno.nombre;
                 document.getElementById('idNombre').textContent = alumno.nombre;
                 document.getElementById('idUsuario').textContent = alumno.usuario;
                 document.getElementById('idMatricula').textContent = alumno.matricula;
