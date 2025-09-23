@@ -250,6 +250,8 @@ async function createGroup() {
     const profesor = document.getElementById('profesorSelect').value;
     const materia = document.getElementById('materiaGrupo').value;
     const alumnos = groupStudents;
+    console.log("Alumnos que voy a mandar:", alumnos);
+    const alumnosData = groupStudents.map(a => a._id);
 
     if (!nombre || !carrera || !profesor || !materia) {
         showNotification('Por favor complete todos los campos del grupo', 'error');
@@ -281,7 +283,7 @@ async function createGroup() {
     const rest = await fetch(`${apiAlumnos}/recibir-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, carrera, materia, profesor: profesorObj, alumnos })
+        body: JSON.stringify({ nombre, carrera, materia, profesor: profesorObj, alumnosData })
     });
         const dataA = await rest.json();
         console.log('Respuesta del API alumnos:', dataA);
@@ -290,7 +292,7 @@ async function createGroup() {
     const restProf = await fetch(`${apiProfesores}/nuevo-grupo`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, carrera, materia, profesor: profesorObj, alumnos })
+        body: JSON.stringify({ nombre, carrera, materia, profesor: profesorObj, alumnosData })
     });
         const dataProf = await restProf.json();
         console.log('Respuesta del API profesores:', dataProf);

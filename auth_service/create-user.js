@@ -5,12 +5,13 @@ import User from './models/User.js';
 
 async function createUser() {
     try {
-        const name = 'vans';
-        const constrasenia = '123456789';
-        const rol = 'alumno';
+        const name = 'rhadmin';
+        const constrasenia = 'password123';
+        const rol = 'rh';
         console.log('🔗 Conectando a la base de datos...');
 
-
+        
+        
         
         // Conectar a la base de datos
         await mongoose.connect('mongodb://localhost:27017/auth_db', {

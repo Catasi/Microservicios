@@ -30,7 +30,7 @@ const verifyToken = async (req, res, next) => {
     }
 };
 
-// Registrar nuevo profesor - MEJORADO
+// Registrar nuevo profesor - MODIFICADO PARA NOTIFICAR A SERVICIOS ESCOLARES
 router.post('/register', verifyToken, async (req, res) => {
     try {
         const { employeeNumber, name, position, username, password } = req.body;
@@ -65,6 +65,23 @@ router.post('/register', verifyToken, async (req, res) => {
                 error: 'Error al crear usuario de autenticación: ' + 
                       (authError.response?.data?.error || authError.message)
             });
+        }
+
+        // 🔥 NUEVO: Notificar a Servicios Escolares
+        try {
+            await axios.post('http://localhost:4005/api/SE/nuevo-profesor', {
+                nombre: name,
+                no_empleado: employeeNumber,
+                usuario: username,
+                puesto: position
+            }, {
+                headers: { 'Content-Type': 'application/json' }
+            });
+            console.log('Profesor notificado a Servicios Escolares exitosamente');
+        } catch (notifyError) {
+            console.error('Error al notificar a Servicios Escolares:', notifyError.message);
+            // No hacemos return aquí para que el registro en RH no falle completamente
+            // Podrías implementar un sistema de reintentos o cola de mensajes después
         }
 
         res.status(201).json({ 

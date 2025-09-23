@@ -184,7 +184,7 @@ router.put("/mi-password", authMiddleware, async (req, res) => {
 // Recibir grupo desde SE para asignar alumnos
 router.post("/recibir-grupo", async (req, res) => {
   try {
-    // const { nombre, materia, carrera, profesor, alumnos } = req.body;
+    const { nombre, materia, carrera, profesor, alumnos } = req.body;
     // console.log('req.body:', req.body); // ← Para ver qué datos llegan
     // console.log('profesorObj:', profesor);
 
@@ -195,22 +195,14 @@ router.post("/recibir-grupo", async (req, res) => {
     }
 
     // Buscar alumnos en la DB y mapearlos a sus ObjectId
-    const alumnoIds = [];
-    for (let a of alumnos) {
-      const alumno = await Alumno.findOne({ matricula: a.matricula });
-      if (alumno) alumnoIds.push(alumno._id);
-    }
-
-    if (!alumnoIds.length) {
-      return res.status(400).json({ error: "No se encontraron alumnos válidos en la base" });
-    }
-
+    // const alumnoIds = [];
+    // for (let a of alumnos) {
+    //   const alumno = await Alumno.findOne({ matricula: a.matricula });
+    //   if (alumno) alumnoIds.push(alumno._id);
+    // }
     //  Crear o actualizar grupo en este servicio
-    const grupo = await Grupo.findOneAndUpdate(
-      { nombre, materia, carrera },
-      { nombre, materia, carrera, profesor: profesorobj._id, alumnos: alumnoIds },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
+    const grupo = new Grupo({ nombre, carrera, profesor_nombre: profesorobj.nombre, alumnos });
+    await grupo.save();
 
     res.status(201).json({ message: "✅ Grupo recibido y registrado para alumnos", grupo });
   } catch (err) {
