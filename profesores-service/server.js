@@ -210,7 +210,12 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
   try {
     const { nombre, materia, carrera, profe, alumnos } = req.body;
 
-    // Buscar o crear profesor
+    // Validaciones básicas
+    if (!nombre || !materia || !carrera || !profe) {
+      return res.status(400).json({ error: "Faltan campos obligatorios" });
+    }
+
+    // 1️⃣ Buscar o crear el profesor en tu base
     let profesorDb = await Profesor.findOne({ numeroEmpleado: String(profe.no_empleado) });
     if (!profesorDb) {
       profesorDb = new Profesor({
@@ -218,21 +223,20 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
         nombre: profe.nombre || "Desconocido",
         usuario: profe.usuario || `user_${Date.now()}`,
         puesto: "Profesor",
-        passwordHash: "defaultHash" // si tu servicio requiere password
+        passwordHash: "defaultHash"
       });
       await profesorDb.save();
     }
 
-    // Mapear alumnos por matrícula a ObjectId
+    // 2️⃣ Mapear alumnos por matrícula a ObjectId
     const alumnosIds = await Promise.all(
-      alumnos.map(async (a) => {
+      (alumnos || []).map(async (a) => {
         let alumnoDb = await Alumno.findOne({ matricula: String(a.matricula) });
         if (!alumnoDb) {
-          // Crear alumno si no existe
           alumnoDb = new Alumno({
             matricula: String(a.matricula),
             nombre: a.nombre || "Desconocido",
-            carrera: carrera, // puedes usar la del grupo
+            carrera,
             calificaciones: []
           });
           await alumnoDb.save();
@@ -241,7 +245,7 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
       })
     );
 
-    // Crear grupo con referencias correctas
+    // 3️⃣ Crear el grupo con referencias correctas
     const nuevoGrupo = new Grupo({
       grupo: nombre,
       materia,
@@ -254,9 +258,11 @@ app.post("/api/profesores/nuevo-grupo", async (req, res) => {
 
     res.status(201).json({ message: "Grupo creado correctamente", grupo: nuevoGrupo });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
