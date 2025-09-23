@@ -1,14 +1,19 @@
 import mongoose from "mongoose";
 
-const GrupoSchema = new mongoose.Schema(
-  {
-    materia:  { type: String, required: true },
-    grupo:    { type: String, required: true },
-    carrera:  { type: String, required: true },
-    profesor: { type: mongoose.Schema.Types.ObjectId, ref: "Profesor", required: true },
-    alumnos:  [{ type: mongoose.Schema.Types.ObjectId, ref: "Alumno" }]
+const GruposSchema = new mongoose.Schema({
+  nombre: { type: String, required: true },
+  carrera: { type: String, required: true },
+  materia: { type: String, required: true },
+  profe: { 
+    nombre: String,
+    no_empleado: Number,
+    usuario: String
   },
-  { timestamps: true }
-);
+  alumnos: [{
+    nombre: String,
+    matricula: Number,
+    usuario: String
+  }]
+}, { timestamps: false });
 
-export default mongoose.model("Grupo", GrupoSchema);
+export default mongoose.model("Grupos", GruposSchema);
